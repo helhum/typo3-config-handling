@@ -42,12 +42,20 @@ class RootConfig
         return self::getRootConfig()['ext-config'];
     }
 
-    public static function getInitConfigFileContent(): string
+    public static function getInitConfigFileContent(array $staticConfig = null): string
     {
-        return <<<'EOF'
+        if ($staticConfig === null) {
+            return <<<'EOF'
 (new \Helhum\TYPO3\ConfigHandling\ConfigLoader(
     \Helhum\TYPO3\ConfigHandling\RootConfig::getRootConfigFile()
 ))->populate();
+EOF;
+        }
+        $exportedConfig = var_export($staticConfig, true);
+        return <<<EOF
+\Helhum\TYPO3\ConfigHandling\ConfigLoader::populateConfig(
+$exportedConfig
+);
 EOF;
     }
 

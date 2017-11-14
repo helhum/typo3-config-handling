@@ -61,6 +61,11 @@ class ConfigLoader
         } else {
             $config = $this->load();
         }
+        self::populateConfig($config);
+    }
+
+    public static function populateConfig(array $config)
+    {
         if (!empty($config['LOG'])) {
             // Disable default writers, to not log to places not intended to be logged to ;(
             unset($GLOBALS['TYPO3_CONF_VARS']['LOG']);
