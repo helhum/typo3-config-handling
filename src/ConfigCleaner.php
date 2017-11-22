@@ -70,9 +70,7 @@ class ConfigCleaner
         }
         return array_merge(
             $imports,
-            ArrayUtility::renumberKeysToAvoidLeapsIfKeysAreAllNumeric(
-                ArrayUtility::sortByKeyRecursive($config)
-            )
+            ArrayUtility::sortByKeyRecursive($config)
         );
     }
 }
