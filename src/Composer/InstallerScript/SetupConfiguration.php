@@ -207,7 +207,7 @@ class SetupConfiguration implements InstallerScript
 
         $commandDispatcher = CommandDispatcher::createFromComposerRun($event);
         $arguments = [];
-        if ($event->isDevMode()) {
+        if (!$event->isDevMode()) {
             $arguments[] = '--no-dev';
         }
         $commandDispatcher->executeCommand('settings:dump', $arguments);
