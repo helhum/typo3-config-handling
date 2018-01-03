@@ -22,6 +22,7 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
  ***************************************************************/
 
 use Composer\IO\IOInterface;
+use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Script\Event as ScriptEvent;
 use Helhum\ConfigLoader\Reader\RootConfigFileReader;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
@@ -32,7 +33,6 @@ use Symfony\Component\Dotenv\Dotenv;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
 use TYPO3\CMS\Core\Configuration\ConfigurationManager;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use Typo3Console\PhpServer\Command\ServerCommandController;
 
 class SetupConfiguration implements InstallerScript
 {
@@ -100,7 +100,9 @@ class SetupConfiguration implements InstallerScript
 
         $io->writeError('');
         $io->writeError('<info>Your TYPO3 installation is now ready to use</info>');
-        if (class_exists(ServerCommandController::class)) {
+        $localRepository = $event->getComposer()->getRepositoryManager()->getLocalRepository();
+        $serverCommandPackage = $localRepository->findPackage('typo3-console/php-server-command', new EmptyConstraint());
+        if ($serverCommandPackage !== null) {
             $io->writeError('');
             $io->writeError(sprintf('Run <comment>%s server:run</comment> in your project root directory, to start the PHP builtin webserver.', substr($event->getComposer()->getConfig()->get('bin-dir') . '/typo3cms', strlen(getcwd()) + 1)));
         }
@@ -163,10 +165,7 @@ class SetupConfiguration implements InstallerScript
                     $dotEnvConfig[$name] = '';
                     continue;
                 }
-                if (empty($infoShown)) {
-                    $io->writeError('<info>Please provide some required settings for your distribution:</info>');
-                }
-                $infoShown = true;
+                $io->writeError('<info>Please provide some required settings for your distribution:</info>');
                 $question = empty($foundEnvVarsInDotEnvFile[$name]) ? $name : $foundEnvVarsInDotEnvFile[$name];
                 $defaultValue = $installationDefaults[$name] ?? null;
                 do {
