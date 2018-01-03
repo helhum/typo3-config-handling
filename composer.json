@@ -3,12 +3,12 @@
     "description" : "Simple but powerful configuration handling for TYPO3 CMS",
     "license": "GPL-2.0+",
     "require": {
-        "php": ">=7.0 <7.2",
+        "php": ">=7.0 <7.3",
         "typo3/cms-core": "^8.7",
         "helhum/typo3-console": "^4.9 || ^5.0",
         "helhum/config-loader": "^0.5",
-        "typo3/cms-composer-installers": "^1.4.2",
-        "helhum/typo3-composer-setup": "^0.5.1"
+        "typo3/cms-composer-installers": "^1.4.2 || ^2.0",
+        "typo3-console/composer-auto-setup": "^0.1 || ^0.3.5"
     },
     "suggest": {
         "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI"

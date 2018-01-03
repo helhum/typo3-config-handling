@@ -34,8 +34,12 @@ class InstallerScripts implements InstallerScriptsRegistration
     {
         $scriptDispatcher->addInstallerScript(new SetupConfiguration(), 68);
         if (class_exists(ConsoleCommand::class)) {
+            $arguments = [];
+            if ($event->isDevMode()) {
+                $arguments[] = '--no-dev';
+            }
             $scriptDispatcher->addInstallerScript(
-                new ConsoleCommand('settings:dump', ['--no-dev' => !$event->isDevMode()]),
+                new ConsoleCommand('settings:dump', $arguments),
                 61
             );
         }
