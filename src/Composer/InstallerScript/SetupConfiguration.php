@@ -205,7 +205,12 @@ class SetupConfiguration implements InstallerScript
 //            new ConfigLoader(RootConfig::getRootConfigFile(true))
 //        );
 //        $configExtractor->extractConfig($typo3InstallConfig, (new ConfigurationManager())->getDefaultConfiguration());
+
         $commandDispatcher = CommandDispatcher::createFromComposerRun($event);
-        $commandDispatcher->executeCommand('settings:dump', ['--no-dev' => !$event->isDevMode()]);
+        $arguments = [];
+        if ($event->isDevMode()) {
+            $arguments[] = '--no-dev';
+        }
+        $commandDispatcher->executeCommand('settings:dump', $arguments);
     }
 }
