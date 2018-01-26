@@ -38,8 +38,8 @@ class Typo3Config implements ConfigReaderInterface
     {
         $configFile = $configFile ?: RootConfig::getRootConfigFile();
         if ($readerFactory === null) {
-            $factory = new ConfigurationReaderFactory();
-            $factory->setReaderFactoryForType(
+            $readerFactory = new ConfigurationReaderFactory();
+            $readerFactory->setReaderFactoryForType(
                 'typo3',
                 function () {
                     return new ClosureConfigReader(
