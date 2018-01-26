@@ -25,7 +25,6 @@ namespace Helhum\TYPO3\ConfigHandling;
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
-use Helhum\ConfigLoader\Reader\RootConfigFileReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -61,14 +60,7 @@ class ConfigLoader
         } else {
             $config = $this->load();
         }
-        if (!empty($config['LOG'])) {
-            // Disable default writers, to not log to places not intended to be logged to ;(
-            unset($GLOBALS['TYPO3_CONF_VARS']['LOG']);
-        }
-        $GLOBALS['TYPO3_CONF_VARS'] = array_replace_recursive(
-            $GLOBALS['TYPO3_CONF_VARS'],
-            $config
-        );
+        $GLOBALS['TYPO3_CONF_VARS'] = $config;
     }
 
     public function load(): array
@@ -80,7 +72,7 @@ class ConfigLoader
     {
         return new ConfigurationLoader(
             [
-                new RootConfigFileReader($configFile),
+                new Typo3Config($configFile),
             ],
             [
                 new PlaceholderValue(),
@@ -89,12 +81,12 @@ class ConfigLoader
         );
     }
 
-    private function getCacheDir()
+    private function getCacheDir(): string
     {
         return getenv('TYPO3_PATH_COMPOSER_ROOT') . '/var/cache';
     }
 
-    private function getCacheIdentifier()
+    private function getCacheIdentifier(): string
     {
         $rootDir = getenv('TYPO3_PATH_COMPOSER_ROOT');
         $confDir = dirname($this->configFile);

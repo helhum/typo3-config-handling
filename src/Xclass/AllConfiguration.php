@@ -22,8 +22,7 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\ConfigLoader\Reader\RootConfigFileReader;
-use Helhum\TYPO3\ConfigHandling\RootConfig;
+use Helhum\TYPO3\ConfigHandling\Typo3Config;
 
 class AllConfiguration extends \TYPO3\CMS\Install\Controller\Action\Tool\AllConfiguration
 {
@@ -52,10 +51,7 @@ class AllConfiguration extends \TYPO3\CMS\Install\Controller\Action\Tool\AllConf
     private function overrideConfig()
     {
         $this->backup = $GLOBALS['TYPO3_CONF_VARS'];
-        $GLOBALS['TYPO3_CONF_VARS'] = array_replace_recursive(
-            $GLOBALS['TYPO3_CONF_VARS'],
-            (new RootConfigFileReader(RootConfig::getRootConfigFile()))->readConfig()
-        );
+        $GLOBALS['TYPO3_CONF_VARS'] = (new Typo3Config())->readConfig();
     }
 
     private function restoreConfig()

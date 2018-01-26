@@ -24,10 +24,9 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
 use Composer\IO\IOInterface;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Script\Event as ScriptEvent;
-use Helhum\ConfigLoader\Reader\RootConfigFileReader;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\EnvConfigFinder;
-use Helhum\TYPO3\ConfigHandling\RootConfig;
+use Helhum\TYPO3\ConfigHandling\Typo3Config;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use Symfony\Component\Dotenv\Dotenv;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
@@ -132,7 +131,7 @@ class SetupConfiguration implements InstallerScript
     {
         $io->writeError('Generating .env file', true, $io::VERBOSE);
 
-        $config = (new RootConfigFileReader(RootConfig::getRootConfigFile()))->readConfig();
+        $config = (new Typo3Config())->readConfig();
         $foundEnvVarsInConfig = (new EnvConfigFinder())->findEnvVars($config);
         $foundEnvVarsInDotEnvFile = $this->getParsedEnvFileValues($this->dotEnvDistFile);
         $installationDefaults = $this->getParsedEnvFileValues($this->dotEnvInstallFile);

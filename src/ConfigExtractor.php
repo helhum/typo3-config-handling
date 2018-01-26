@@ -22,7 +22,7 @@ namespace Helhum\TYPO3\ConfigHandling;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\ConfigLoader\Reader\RootConfigFileReader;
+use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ConfigExtractor
@@ -43,6 +43,11 @@ class ConfigExtractor
     private $configLoader;
 
     /**
+     * @var ConfigurationReaderFactory
+     */
+    private $readerFactory;
+
+    /**
      * @var string
      */
     private $mainConfigFile;
@@ -56,12 +61,14 @@ class ConfigExtractor
         ConfigDumper $configDumper = null,
         ConfigCleaner $configCleaner = null,
         ConfigLoader $configLoader = null,
+        ConfigurationReaderFactory $readerFactory = null,
         string $mainConfigFile = null,
         string $extensionConfigFile = null
     ) {
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configCleaner = $configCleaner ?: new ConfigCleaner();
         $this->configLoader = $configLoader ?: new ConfigLoader(RootConfig::getRootConfigFile());
+        $this->readerFactory = $readerFactory ?: new ConfigurationReaderFactory();
         $this->mainConfigFile = $mainConfigFile ?: RootConfig::getMainConfigFile();
         $this->extensionConfigFile = $extensionConfigFile ?: RootConfig::getExtensionConfigFile();
     }
@@ -104,7 +111,7 @@ class ConfigExtractor
     {
         $currentConfig = [];
         if (file_exists($configFile)) {
-            $currentConfig = (new RootConfigFileReader($configFile, null, false))->readConfig();
+            $currentConfig = $this->readerFactory->createReader($configFile)->readConfig();
         }
         return $this->configCleaner->cleanConfig(
             array_replace_recursive($currentConfig, $this->unserializeExtensionConfig($config)),
