@@ -22,8 +22,8 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
  ***************************************************************/
 
 use Composer\IO\IOInterface;
-use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Script\Event as ScriptEvent;
+use Composer\Semver\Constraint\EmptyConstraint;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\EnvConfigFinder;
 use Helhum\TYPO3\ConfigHandling\Typo3Config;
@@ -154,8 +154,10 @@ class SetupConfiguration implements InstallerScript
                 unset($foundValue);
             } else {
                 if (false !== getenv($name)) {
-                    $io->writeError(sprintf('Skipping "%s" env var, as it is already set. You may need to put it into your .env file though.',
-                        $name), true, $io::VERBOSE);
+                    $io->writeError(sprintf(
+                        'Skipping "%s" env var, as it is already set. You may need to put it into your .env file though.',
+                        $name
+                    ), true, $io::VERBOSE);
                     continue;
                 }
                 if (strpos($name, 'TYPO3_INSTALL_DB_') !== false) {
@@ -194,8 +196,8 @@ class SetupConfiguration implements InstallerScript
      */
     private function extractConfig(ScriptEvent $event, IOInterface $io, $typo3InstallConfig)
     {
-// TODO: I have no idea how to get reasonable results in such a process, so it is disabled for now
-// TODO: It works very well with the defaults currently committed, so we only need to look at this for TYPO3 9 again.
+        // TODO: I have no idea how to get reasonable results in such a process, so it is disabled for now
+        // TODO: It works very well with the defaults currently committed, so we only need to look at this for TYPO3 9 again.
 //        $io->writeError('Merging installed TYPO3 config with project settings', true, $io::VERBOSE);
 //        $configExtractor = new ConfigExtractor(
 //            new ConfigDumper(),

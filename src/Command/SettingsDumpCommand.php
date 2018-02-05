@@ -66,7 +66,7 @@ class SettingsDumpCommand extends Command
     {
         $this->setDefinition(
             [
-                new InputOption('--no-dev', null, InputOption::VALUE_NONE, 'When set, only LocalConfiguration.php is written to contain the merged configuration ready for production')
+                new InputOption('--no-dev', null, InputOption::VALUE_NONE, 'When set, only LocalConfiguration.php is written to contain the merged configuration ready for production'),
             ]
         )
         ->setDescription('Dump a (static) LocalConfiguration.php file')
