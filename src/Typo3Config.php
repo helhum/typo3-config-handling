@@ -4,6 +4,7 @@ namespace Helhum\TYPO3\ConfigHandling;
 
 use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
+use Helhum\ConfigLoader\InvalidConfigurationFileException;
 use Helhum\ConfigLoader\Reader\ClosureConfigReader;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
@@ -40,6 +41,21 @@ class Typo3Config implements ConfigReaderInterface
         if ($readerFactory === null) {
             $readerFactory = new ConfigurationReaderFactory(dirname($configFile));
         }
+        $readerFactory->setReaderFactoryForType(
+            'typo3',
+            function (string $resource) {
+                return new ClosureConfigReader(
+                    function () use ($resource) {
+                        $configFile = sprintf(getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/DefaultConfiguration.php', $resource);
+                        if (!file_exists($configFile)) {
+                            throw new InvalidConfigurationFileException('Could not find TYPO3 configuration', 1517785215);
+                        }
+                        return require $configFile;
+                    }
+                );
+            },
+            false
+        );
         $this->reader = $readerFactory->createRootReader($configFile);
     }
 
