@@ -26,11 +26,11 @@ use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
 use Helhum\TYPO3\ConfigHandling\RootConfig;
-use Helhum\TYPO3\ConfigHandling\Xclass\ConfigurationManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Configuration\ConfigurationManager;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 class SettingsDumpCommand extends Command

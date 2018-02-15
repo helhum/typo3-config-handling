@@ -23,10 +23,10 @@ namespace Helhum\TYPO3\ConfigHandling\Command;
  ***************************************************************/
 
 use Helhum\TYPO3\ConfigHandling\ConfigExtractor;
-use Helhum\TYPO3\ConfigHandling\Xclass\ConfigurationManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Configuration\ConfigurationManager;
 
 class SettingsExtractCommand extends Command
 {
