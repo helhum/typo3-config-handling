@@ -21,6 +21,7 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\ConfigExtractor;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
@@ -46,7 +47,7 @@ class ConfigurationManager extends \TYPO3\CMS\Core\Configuration\ConfigurationMa
     {
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configExtractor = $configExtractor ?: new ConfigExtractor($this->configDumper);
-        $this->activeConfig = (new ConfigLoader(RootConfig::getRootConfigFile()))->load();
+        $this->activeConfig = (new ConfigCleaner())->cleanConfig((new ConfigLoader(RootConfig::getRootConfigFile()))->load(), $this->getDefaultConfiguration());
     }
 
     public function getLocalConfiguration()
