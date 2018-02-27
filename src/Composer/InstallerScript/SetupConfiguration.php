@@ -24,14 +24,15 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
 use Composer\IO\IOInterface;
 use Composer\Script\Event as ScriptEvent;
 use Composer\Semver\Constraint\EmptyConstraint;
+use Helhum\ConfigLoader\Config;
+use Helhum\ConfigLoader\PathDoesNotExistException;
+use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
-use Helhum\TYPO3\ConfigHandling\EnvConfigFinder;
 use Helhum\TYPO3\ConfigHandling\Typo3Config;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use Symfony\Component\Dotenv\Dotenv;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
 use TYPO3\CMS\Core\Configuration\ConfigurationManager;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 class SetupConfiguration implements InstallerScript
 {
@@ -132,50 +133,54 @@ class SetupConfiguration implements InstallerScript
         $io->writeError('Generating .env file', true, $io::VERBOSE);
 
         $config = (new Typo3Config())->readConfig();
-        $foundEnvVarsInConfig = (new EnvConfigFinder())->findEnvVars($config);
+        $foundEnvVarsInConfig = (new PlaceholderValue())->findPlaceholders($config, ['env']);
         $foundEnvVarsInDotEnvFile = $this->getParsedEnvFileValues($this->dotEnvDistFile);
         $installationDefaults = $this->getParsedEnvFileValues($this->dotEnvInstallFile);
 
         $dotEnvConfig = [
             'TYPO3_CONTEXT' => 'Development',
         ];
-        foreach ($foundEnvVarsInConfig as $name => $places) {
+        foreach ($foundEnvVarsInConfig as $placeholder) {
             try {
-                if (!empty($places['paths'])) {
-                    foreach ($places['paths'] as $path) {
-                        $foundValue = ArrayUtility::getValueByPath($typo3InstallConfig, $path, '.');
-                        $typo3InstallConfig = ArrayUtility::removeByPath($typo3InstallConfig, $path, '.');
+                if (!empty($placeholder['paths'])) {
+                    foreach ($placeholder['paths'] as $path) {
+                        if ($path['isKey']) {
+                            // We can't handle config keys for now
+                            continue;
+                        }
+                        $foundValue = Config::getValue($typo3InstallConfig, $path['path']);
+                        $typo3InstallConfig = Config::removeValue($typo3InstallConfig, $path['path']);
                     }
                 }
-            } catch (\RuntimeException $e) {
+            } catch (PathDoesNotExistException $e) {
             }
             if (isset($foundValue)) {
-                $dotEnvConfig[$name] = $foundValue;
+                $dotEnvConfig[$placeholder['placeholder']['accessor']] = $foundValue;
                 unset($foundValue);
             } else {
-                if (false !== getenv($name)) {
+                if (false !== getenv($placeholder['placeholder']['accessor'])) {
                     $io->writeError(sprintf(
                         'Skipping "%s" env var, as it is already set. You may need to put it into your .env file though.',
-                        $name
+                        $placeholder['placeholder']['accessor']
                     ), true, $io::VERBOSE);
                     continue;
                 }
-                if (strpos($name, 'TYPO3_INSTALL_DB_') !== false) {
+                if (strpos($placeholder['placeholder']['accessor'], 'TYPO3_INSTALL_DB_') !== false) {
                     // Skip DB connection values that were stripped out from LocalConfiguration.php by TYPO
                     // as they are not needed in this system
-                    $dotEnvConfig[$name] = '';
+                    $dotEnvConfig[$placeholder['placeholder']['accessor']] = '';
                     continue;
                 }
                 $io->writeError('<info>Please provide some required settings for your distribution:</info>');
-                $question = empty($foundEnvVarsInDotEnvFile[$name]) ? $name : $foundEnvVarsInDotEnvFile[$name];
-                $defaultValue = $installationDefaults[$name] ?? null;
+                $question = empty($foundEnvVarsInDotEnvFile[$placeholder['placeholder']['accessor']]) ? $placeholder['placeholder']['accessor'] : $foundEnvVarsInDotEnvFile[$placeholder['placeholder']['accessor']];
+                $defaultValue = $installationDefaults[$placeholder['placeholder']['accessor']] ?? null;
                 do {
                     $answer = $io->ask(
                         '<comment>' . $question . ($defaultValue ? sprintf(' (%s):', $defaultValue) : ':') . '</comment> ',
                         $defaultValue
                     );
                 } while ($answer === null);
-                $dotEnvConfig[$name] = $answer;
+                $dotEnvConfig[$placeholder['placeholder']['accessor']] = $answer;
             }
         }
         $missingEnvVars = array_diff_key($foundEnvVarsInDotEnvFile, $dotEnvConfig);
