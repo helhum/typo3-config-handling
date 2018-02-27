@@ -75,7 +75,7 @@ class ConfigLoader
                 new Typo3Config($configFile),
             ],
             [
-                new PlaceholderValue(GeneralUtility::getApplicationContext()->isDevelopment()),
+                new PlaceholderValue(false),
                 new ExtensionSettingsSerializer(),
             ]
         );
