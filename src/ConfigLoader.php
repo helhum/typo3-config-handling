@@ -36,13 +36,19 @@ class ConfigLoader
     private $configFile;
 
     /**
+     * @var bool
+     */
+    private $strictPlaceholderParsing;
+
+    /**
      * @var ConfigurationLoader
      */
     private $loader;
 
-    public function __construct(string $configFile)
+    public function __construct(string $configFile, bool $strictPlaceholderParsing = false)
     {
         $this->configFile = $configFile;
+        $this->strictPlaceholderParsing = $strictPlaceholderParsing;
         $this->loader = $this->buildLoader($configFile);
     }
 
@@ -75,7 +81,7 @@ class ConfigLoader
                 new Typo3Config($configFile),
             ],
             [
-                new PlaceholderValue(false),
+                new PlaceholderValue($this->strictPlaceholderParsing),
                 new ExtensionSettingsSerializer(),
             ]
         );

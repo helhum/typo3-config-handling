@@ -42,11 +42,13 @@ class RootConfig
         return self::getRootConfig()['ext-config'];
     }
 
-    public static function getInitConfigFileContent(): string
+    public static function getInitConfigFileContent(bool $strictPlaceholderParsing = false): string
     {
-        return <<<'EOF'
+        $strict = $strictPlaceholderParsing ? 'true' : 'false';
+        return <<<EOF
 (new \Helhum\TYPO3\ConfigHandling\ConfigLoader(
-    \Helhum\TYPO3\ConfigHandling\RootConfig::getRootConfigFile()
+    \Helhum\TYPO3\ConfigHandling\RootConfig::getRootConfigFile(),
+    $strict
 ))->populate();
 EOF;
     }
