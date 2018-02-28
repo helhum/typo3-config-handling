@@ -142,6 +142,9 @@ EOF;
                 break;
             case 'conf':
                 $subConfig = Config::getValue($referenceConfig, $placeholderInfo['accessor']);
+                if ($forKey && !is_scalar($subConfig)) {
+                    throw new InvalidConfigurationFileException(sprintf('Cannot use conf placeholder "%s" as array key, when it references an array', $value), 1519826280);
+                }
                 $phpCode = $this->getPhpCode($subConfig, $referenceConfig, $path);
                 break;
             case 'global':
