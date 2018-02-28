@@ -129,23 +129,23 @@ EOF;
     private function getPhpCodeForValue(string $value, array $referenceConfig, array $path = []): string
     {
         if (!$this->isPlaceHolder($value)) {
-            return '\'' . addcslashes($value, '\\\'') . '\'';
+            return '\'' . $this->escapePhpValue($value) . '\'';
         }
         $placeholderInfo = $this->extractPlaceHolder($value);
-        $phpCode = '\'' . $value . '\'';
+        $phpCode = '\'' . $this->escapePhpValue($value) . '\'';
         switch ($placeholderInfo['type']) {
             case 'env':
-                $phpCode = 'getenv(\'' . $placeholderInfo['accessor'] . '\')';
+                $phpCode = 'getenv(\'' . $this->escapePhpValue($placeholderInfo['accessor']) . '\')';
                 break;
             case 'const':
-                $phpCode = 'constant(\'' . $placeholderInfo['accessor'] . '\')';
+                $phpCode = 'constant(\'' . $this->escapePhpValue($placeholderInfo['accessor']) . '\')';
                 break;
             case 'conf':
                 $phpCode = substr($this->getPhpCode(Config::getValue($referenceConfig, $placeholderInfo['accessor']), $referenceConfig, $path), 0, -2);
                 break;
             case 'global':
                 $globalPath = str_getcsv($placeholderInfo['accessor'], '.');
-                $phpCode = '$GLOBALS[\'' . implode('\'][\'', $globalPath) . '\']';
+                $phpCode = '$GLOBALS[\'' . implode('\'][\'', array_map([$this, 'escapePhpValue'], $globalPath)) . '\']';
                 break;
         }
         if ($placeholderInfo['isDirectMatch']) {
@@ -153,6 +153,11 @@ EOF;
         }
 
         return '\'' . preg_replace(PlaceholderValue::PLACEHOLDER_PATTERN, '\' . ' . $phpCode . ' . \'', $value) . '\'';
+    }
+
+    private function escapePhpValue(string $value): string
+    {
+        return addcslashes($value, '\\\'');
     }
 
     private function extractPlaceHolder($value, array $types = null): array
