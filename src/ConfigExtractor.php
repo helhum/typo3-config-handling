@@ -125,14 +125,11 @@ class ConfigExtractor
             return $config;
         }
         $unserializedConfig = $config;
-        try {
-            foreach ($config['EXT']['extConf'] as $extensionKey => $typo3ExtSettings) {
-                if (!is_string($typo3ExtSettings)) {
-                    continue;
-                }
-                $unserializedConfig['EXT']['extConf'][$extensionKey] = GeneralUtility::removeDotsFromTS(unserialize($typo3ExtSettings, [false]));
+        foreach ($config['EXT']['extConf'] as $extensionKey => $typo3ExtSettings) {
+            if (!is_string($typo3ExtSettings)) {
+                continue;
             }
-        } catch (\RuntimeException $e) {
+            $unserializedConfig['EXT']['extConf'][$extensionKey] = GeneralUtility::removeDotsFromTS(unserialize($typo3ExtSettings, [false]));
         }
         return $unserializedConfig;
     }
