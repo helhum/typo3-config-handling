@@ -46,7 +46,7 @@ class Typo3Config implements ConfigReaderInterface
             function (string $resource) {
                 return new ClosureConfigReader(
                     function () use ($resource) {
-                        $configFile = sprintf(getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/DefaultConfiguration.php', $resource);
+                        $configFile = sprintf(getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/%s.php', $resource);
                         if (!file_exists($configFile)) {
                             throw new InvalidConfigurationFileException('Could not find TYPO3 configuration', 1517785215);
                         }
