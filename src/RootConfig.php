@@ -74,6 +74,10 @@ EOF;
         if (empty($rootConfig['ext-config'])) {
             $rootConfig['ext-config'] = $rootConfig['main-config'];
         }
+        if (!file_exists($rootConfig['dev-config'])) {
+            $rootConfig['dev-config'] = $rootConfig['prod-config'];
+        }
+
         return $rootConfig;
     }
 }
