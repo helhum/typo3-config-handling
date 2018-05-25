@@ -106,10 +106,26 @@ class ConfigLoader
             new ExtensionSettingsSerializer(),
         ];
 
+        $customProcessors = null;
+        if (isset($mainConfig['processors'])) {
+            $processors = array_merge($processors, $this->createCustomProcessors($mainConfig['processors']));
+            unset($mainConfig['processors']);
+        }
+
         return new ConfigurationLoader(
             $configReaders,
             $processors
         );
+    }
+
+    private function createCustomProcessors(array $processorsConfig): array
+    {
+        $processors = [];
+        foreach ($processorsConfig as $processorConfig) {
+            $processors[] = new $processorConfig['class'];
+        }
+
+        return $processors;
     }
 
     private function getCacheDir(): string
