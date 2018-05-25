@@ -25,6 +25,7 @@ namespace Helhum\TYPO3\ConfigHandling;
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
+use Helhum\ConfigLoader\Reader\ClosureConfigReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -76,14 +77,38 @@ class ConfigLoader
 
     private function buildLoader(string $configFile): ConfigurationLoader
     {
+        $mainConfig = (new Typo3Config($configFile))->readConfig();
+        $mainConfigReader = new ClosureConfigReader(
+            function () use (&$mainConfig) {
+                return $mainConfig;
+            },
+            function () use (&$mainConfig) {
+                return !empty($mainConfig);
+            }
+        );
+        $configReaders = [$mainConfigReader];
+        $defaultConfigImported = !empty($mainConfig['SYS']['lang']['format']['priority']);
+        if (!$defaultConfigImported) {
+            $defaultConfigFile = getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/DefaultConfiguration.php';
+            $defaultConfigReader = new ClosureConfigReader(
+                    function () use ($defaultConfigFile) {
+                        return require $defaultConfigFile;
+                    },
+                    function () use ($defaultConfigFile) {
+                        return file_exists($defaultConfigFile);
+                    }
+                );
+            array_unshift($configReaders, $defaultConfigReader);
+        }
+
+        $processors = [
+            new PlaceholderValue($this->strictPlaceholderParsing),
+            new ExtensionSettingsSerializer(),
+        ];
+
         return new ConfigurationLoader(
-            [
-                new Typo3Config($configFile),
-            ],
-            [
-                new PlaceholderValue($this->strictPlaceholderParsing),
-                new ExtensionSettingsSerializer(),
-            ]
+            $configReaders,
+            $processors
         );
     }
 
