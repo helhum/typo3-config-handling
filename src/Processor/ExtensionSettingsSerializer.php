@@ -45,6 +45,7 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
                     $config['EXT']['extConf'][$extensionKey] = serialize($this->addDotsToTypoScript($extensionSettings));
                 }
             }
+
             return $config;
         } catch (PathDoesNotExistException $e) {
             return $config;
@@ -66,6 +67,7 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
                 $out[$key] = $value;
             }
         }
+
         return $out;
     }
 }

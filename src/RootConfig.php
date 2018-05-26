@@ -29,6 +29,7 @@ class RootConfig
     public static function getRootConfigFile(bool $isProduction = null): string
     {
         $isProduction = $isProduction ?? GeneralUtility::getApplicationContext()->isProduction();
+
         return $isProduction ? self::getRootConfig()['prod-config'] : self::getRootConfig()['dev-config'];
     }
 
@@ -45,6 +46,7 @@ class RootConfig
     public static function getInitConfigFileContent(bool $strictPlaceholderParsing = false): string
     {
         $strict = $strictPlaceholderParsing ? 'true' : 'false';
+
         return <<<EOF
 (new \Helhum\TYPO3\ConfigHandling\ConfigLoader(
     \Helhum\TYPO3\ConfigHandling\RootConfig::getRootConfigFile(),

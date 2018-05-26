@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
 
 /***************************************************************
@@ -107,6 +108,7 @@ class SetupConfiguration implements InstallerScript
             $io->writeError(sprintf('Run <comment>%s server:run</comment> in your project root directory, to start the PHP builtin webserver.', substr($event->getComposer()->getConfig()->get('bin-dir') . '/typo3cms', strlen(getcwd()) + 1)));
         }
         $io->writeError('');
+
         return true;
     }
 
@@ -119,6 +121,7 @@ class SetupConfiguration implements InstallerScript
         if (!file_exists($dotEnvFile)) {
             return [];
         }
+
         return (new Dotenv())->parse(file_get_contents($dotEnvFile), $dotEnvFile);
     }
 
@@ -190,6 +193,7 @@ class SetupConfiguration implements InstallerScript
             $dotEnvConfigContent .= "$name='$value'\n";
         }
         file_put_contents($this->dotEnvFile, $dotEnvConfigContent);
+
         return $typo3InstallConfig;
     }
 

@@ -40,6 +40,7 @@ class ConfigCleaner
         foreach ($referenceConfigs as $referenceConfig) {
             $cleanedConfig = $this->removeIdenticalValues($cleanedConfig, $referenceConfig);
         }
+
         return $this->sortConfig($cleanedConfig);
     }
 
@@ -53,6 +54,7 @@ class ConfigCleaner
                 $cleanedBaseConfig[$key] = $value;
             }
         }
+
         return array_filter(
             $cleanedBaseConfig,
             function ($value) {
@@ -68,6 +70,7 @@ class ConfigCleaner
             $imports = ['imports' => $config['imports']];
             unset($config['imports']);
         }
+
         return array_merge(
             $imports,
             ArrayUtility::sortByKeyRecursive($config)

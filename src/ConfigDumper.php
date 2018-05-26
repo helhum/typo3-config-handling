@@ -55,6 +55,7 @@ return $exportedConfig;
 
 EOF;
         }
+
         return GeneralUtility::writeFile(
             $file,
             $fileContent,
@@ -67,6 +68,7 @@ EOF;
         if (empty($comment)) {
             return '';
         }
+
         return implode(
             chr(10),
             array_map(function ($line) use ($commentChar) {
@@ -118,6 +120,7 @@ EOF;
         } else {
             throw new \RuntimeException('Objects, closures and resources are not supported', 1519779656);
         }
+
         return $code;
     }
 
@@ -173,6 +176,7 @@ EOF;
         if ($types !== null && !in_array($matches[1], $types, true)) {
             return [];
         }
+
         return [
             'placeholder' => $matches[0],
             'type' => $matches[1],
@@ -196,6 +200,7 @@ EOF;
                 $out[$key] = $value;
             }
         }
+
         return $out;
     }
 }

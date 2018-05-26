@@ -122,7 +122,7 @@ class ConfigLoader
     {
         $processors = [];
         foreach ($processorsConfig as $processorConfig) {
-            $processors[] = new $processorConfig['class'];
+            $processors[] = new $processorConfig['class']();
         }
 
         return $processors;
@@ -150,6 +150,7 @@ class ConfigLoader
                 $identifier .= filemtime($fileWatch);
             }
         }
+
         return md5($identifier);
     }
 }

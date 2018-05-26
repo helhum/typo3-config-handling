@@ -113,6 +113,7 @@ class ConfigExtractor
         if (file_exists($configFile)) {
             $currentConfig = $this->readerFactory->createReader($configFile)->readConfig();
         }
+
         return $this->configCleaner->cleanConfig(
             array_replace_recursive($currentConfig, $this->unserializeExtensionConfig($config)),
             $this->unserializeExtensionConfig($defaultConfig)
@@ -131,6 +132,7 @@ class ConfigExtractor
             }
             $unserializedConfig['EXT']['extConf'][$extensionKey] = GeneralUtility::removeDotsFromTS(unserialize($typo3ExtSettings, [false]));
         }
+
         return $unserializedConfig;
     }
 }
