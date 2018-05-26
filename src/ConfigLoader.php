@@ -50,11 +50,15 @@ class ConfigLoader
     {
         $this->configFile = $configFile;
         $this->strictPlaceholderParsing = $strictPlaceholderParsing;
-        $this->loader = $this->buildLoader($configFile);
+        $this->buildLoader($configFile);
     }
 
     public function populate(bool $enableCache = false)
     {
+        if (!$this->loader) {
+            return;
+        }
+
         if ($enableCache) {
             $cachedLoader = new CachedConfigurationLoader(
                 $this->getCacheDir(),
@@ -72,11 +76,19 @@ class ConfigLoader
 
     public function load(): array
     {
+        if (!$this->loader) {
+            return [];
+        }
+
         return $this->loader->load();
     }
 
-    private function buildLoader(string $configFile): ConfigurationLoader
+    private function buildLoader(string $configFile)
     {
+        if (!file_exists($this->configFile)) {
+            return;
+        }
+
         $mainConfig = (new Typo3Config($configFile))->readConfig();
         $mainConfigReader = new ClosureConfigReader(
             function () use (&$mainConfig) {
@@ -112,7 +124,7 @@ class ConfigLoader
             unset($mainConfig['processors']);
         }
 
-        return new ConfigurationLoader(
+        $this->loader = new ConfigurationLoader(
             $configReaders,
             $processors
         );
