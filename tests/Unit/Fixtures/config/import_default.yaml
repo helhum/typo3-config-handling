@@ -1,0 +1,4 @@
+imports:
+    - { resource: 'DefaultConfiguration', type: typo3, exclude: [LOG] }
+
+foo: bar

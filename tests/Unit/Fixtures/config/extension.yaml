@@ -1,0 +1,4 @@
+EXT:
+    extConf:
+        bar_ext:
+            foo: bar
