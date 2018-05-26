@@ -23,25 +23,23 @@ namespace Helhum\TYPO3\ConfigHandling\Composer;
  ***************************************************************/
 
 use Composer\Script\Event;
+use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\DumpConfiguration;
 use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\SetupConfiguration;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScriptsRegistration;
 use TYPO3\CMS\Composer\Plugin\Core\ScriptDispatcher;
-use Typo3Console\ComposerAutoSetup\Composer\InstallerScript\ConsoleCommand;
 
 class InstallerScripts implements InstallerScriptsRegistration
 {
     public static function register(Event $event, ScriptDispatcher $scriptDispatcher)
     {
         $scriptDispatcher->addInstallerScript(new SetupConfiguration(), 68);
-        if (class_exists(ConsoleCommand::class)) {
-            $arguments = [];
-            if (!$event->isDevMode()) {
-                $arguments[] = '--no-dev';
-            }
-            $scriptDispatcher->addInstallerScript(
-                new ConsoleCommand('settings:dump', $arguments),
-                61
-            );
+        $arguments = [];
+        if (!$event->isDevMode()) {
+            $arguments[] = '--no-dev';
         }
+        $scriptDispatcher->addInstallerScript(
+            new DumpConfiguration(),
+            61
+        );
     }
 }
