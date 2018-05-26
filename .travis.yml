@@ -1,0 +1,55 @@
+language: php
+
+# Do not build feature branches or alpha/beta releases
+branches:
+  only:
+    - master
+    - develop
+    - /^([0-9]+\.){1,2}(x|[0-9]+)$/
+
+addons:
+  apt:
+    packages:
+      - parallel
+
+sudo: false
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+notifications:
+  email:
+    - typo3@helhum.io
+
+install:
+  - composer install
+
+script:
+  - >
+    echo;
+    echo "Running unit tests";
+    vendor/bin/phpunit tests/Unit/
+  - >
+    echo;
+    echo "Running php lint";
+    find . -name \*.php ! -path "./vendor/*" | parallel --gnu php -d display_errors=stderr -l {} > /dev/null \;
+
+jobs:
+  fast_finish: true
+  include:
+    - stage: test
+      php: 7.2
+    - stage: test
+      php: 7.1
+    - stage: test
+      php: 7.0
+    - &yaml
+      stage: test
+      php: 7.2
+      env: With yaml extension
+      before_install:
+        - printf "\n" | pecl install yaml;
+    - <<: *yaml
+      php: 7.1
+    - <<: *yaml
+      php: 7.0
