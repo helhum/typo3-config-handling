@@ -22,12 +22,12 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\ConfigLoader\InvalidConfigurationFileException;
-use Helhum\TYPO3\ConfigHandling\ConfigLoader;
+use Helhum\Typo3Config\InvalidConfigurationFileException;
+use Helhum\TYPO3\ConfigHandling\Typo3Config;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 
-class ConfigLoaderTest extends TestCase
+class Typo3ConfigTest extends TestCase
 {
     protected function setUp()
     {
@@ -65,8 +65,8 @@ class ConfigLoaderTest extends TestCase
      */
     public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
     {
-        $configLoader = new ConfigLoader('/not/existing.yaml');
-        $this->assertArrayHasKey('SYS', $configLoader->load());
+        $typo3Config = new Typo3Config('/not/existing.yaml');
+        $this->assertArrayHasKey('SYS', $typo3Config->readConfig());
     }
 
     /**
@@ -75,8 +75,8 @@ class ConfigLoaderTest extends TestCase
     public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/config.yaml');
-        $actualResult = $configLoader->load();
+        $typo3Config = new Typo3Config($root . '/config.yaml');
+        $actualResult = $typo3Config->readConfig();
         $this->assertArrayHasKey('SYS', $actualResult);
         $this->assertArrayHasKey('foo', $actualResult);
         $this->assertArrayHasKey('LOG', $actualResult);
@@ -88,8 +88,8 @@ class ConfigLoaderTest extends TestCase
     public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/import_default.yaml');
-        $actualResult = $configLoader->load();
+        $typo3Config = new Typo3Config($root . '/import_default.yaml');
+        $actualResult = $typo3Config->readConfig();
         $this->assertArrayHasKey('SYS', $actualResult);
         $this->assertArrayHasKey('foo', $actualResult);
         $this->assertArrayNotHasKey('LOG', $actualResult);
@@ -98,63 +98,23 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function placeHoldersAreReplaced()
+    public function placeHoldersAreNotReplaced()
     {
         putenv('FOO=bar');
 
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/placeholders.yaml');
-        $actualResult = $configLoader->load();
+        $typo3Config = new Typo3Config($root . '/placeholders.yaml');
+        $actualResult = $typo3Config->readConfig();
 
         $this->assertArrayHasKey('env', $actualResult);
         $this->assertArrayHasKey('const', $actualResult);
         $this->assertArrayHasKey('conf', $actualResult);
 
-        $this->assertSame('bar', $actualResult['env']);
-        $this->assertSame(PHP_EOL, $actualResult['const']);
-        $this->assertSame('success', $actualResult['conf']);
+        $this->assertSame('%env(FOO)%', $actualResult['env']);
+        $this->assertSame('%const(PHP_EOL)%', $actualResult['const']);
+        $this->assertSame('%conf(access)%', $actualResult['conf']);
 
         putenv('FOO');
-    }
-
-    /**
-     * @test
-     */
-    public function exceptionIsThrownForNotReplacedPlaceHolderInStrictMode()
-    {
-        $this->expectException(InvalidConfigurationFileException::class);
-        $this->expectExceptionCode(1519640359);
-
-        $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/not_existing_placeholder.yaml', true);
-        $configLoader->load();
-    }
-
-    /**
-     * @test
-     */
-    public function invalidPlaceHoldersAreNotReplacedWhenNotInStrictMode()
-    {
-        $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/not_existing_placeholder.yaml');
-        $actualResult = $configLoader->load();
-
-        $this->assertArrayHasKey('env', $actualResult);
-
-        $this->assertSame('%env(FOO)%', $actualResult['env']);
-    }
-
-    /**
-     * @test
-     */
-    public function extensionSettingsAreSerialized()
-    {
-        $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/extension.yaml');
-        $actualResult = $configLoader->load();
-
-        $this->assertArrayHasKey('EXT', $actualResult);
-        $this->assertSame('a:1:{s:3:"foo";s:3:"bar";}', $actualResult['EXT']['extConf']['bar_ext']);
     }
 
     /**
@@ -163,8 +123,8 @@ class ConfigLoaderTest extends TestCase
     public function customProcessorsAreCalled()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/processors.yaml');
-        $actualResult = $configLoader->load();
+        $typo3Config = new Typo3Config($root . '/processors.yaml');
+        $actualResult = $typo3Config->readConfig();
 
         $this->assertArrayHasKey('newKey', $actualResult);
         $this->assertArrayHasKey('foo', $actualResult);

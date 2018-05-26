@@ -25,7 +25,6 @@ namespace Helhum\TYPO3\ConfigHandling;
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
-use Helhum\ConfigLoader\Reader\ClosureConfigReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -50,15 +49,11 @@ class ConfigLoader
     {
         $this->configFile = $configFile;
         $this->strictPlaceholderParsing = $strictPlaceholderParsing;
-        $this->buildLoader($configFile);
+        $this->loader = $this->buildLoader($configFile);
     }
 
     public function populate(bool $enableCache = false)
     {
-        if (!$this->loader) {
-            return;
-        }
-
         if ($enableCache) {
             $cachedLoader = new CachedConfigurationLoader(
                 $this->getCacheDir(),
@@ -76,68 +71,20 @@ class ConfigLoader
 
     public function load(): array
     {
-        if (!$this->loader) {
-            return [];
-        }
-
         return $this->loader->load();
     }
 
-    private function buildLoader(string $configFile)
+    private function buildLoader(string $configFile): ConfigurationLoader
     {
-        if (!file_exists($this->configFile)) {
-            return;
-        }
-
-        $mainConfig = (new Typo3Config($configFile))->readConfig();
-        $mainConfigReader = new ClosureConfigReader(
-            function () use (&$mainConfig) {
-                return $mainConfig;
-            },
-            function () use (&$mainConfig) {
-                return !empty($mainConfig);
-            }
+        return new ConfigurationLoader(
+            [
+                new Typo3Config($configFile),
+            ],
+            [
+                new PlaceholderValue($this->strictPlaceholderParsing),
+                new ExtensionSettingsSerializer(),
+            ]
         );
-        $configReaders = [$mainConfigReader];
-        $defaultConfigImported = !empty($mainConfig['SYS']['lang']['format']['priority']);
-        if (!$defaultConfigImported) {
-            $defaultConfigFile = getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/DefaultConfiguration.php';
-            $defaultConfigReader = new ClosureConfigReader(
-                    function () use ($defaultConfigFile) {
-                        return require $defaultConfigFile;
-                    },
-                    function () use ($defaultConfigFile) {
-                        return file_exists($defaultConfigFile);
-                    }
-                );
-            array_unshift($configReaders, $defaultConfigReader);
-        }
-
-        $processors = [
-            new PlaceholderValue($this->strictPlaceholderParsing),
-            new ExtensionSettingsSerializer(),
-        ];
-
-        $customProcessors = null;
-        if (isset($mainConfig['processors'])) {
-            $processors = array_merge($processors, $this->createCustomProcessors($mainConfig['processors']));
-            unset($mainConfig['processors']);
-        }
-
-        $this->loader = new ConfigurationLoader(
-            $configReaders,
-            $processors
-        );
-    }
-
-    private function createCustomProcessors(array $processorsConfig): array
-    {
-        $processors = [];
-        foreach ($processorsConfig as $processorConfig) {
-            $processors[] = new $processorConfig['class']();
-        }
-
-        return $processors;
     }
 
     private function getCacheDir(): string

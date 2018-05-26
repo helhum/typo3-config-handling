@@ -2,12 +2,6 @@
 declare(strict_types=1);
 namespace Helhum\TYPO3\ConfigHandling;
 
-use Helhum\ConfigLoader\Config;
-use Helhum\ConfigLoader\ConfigurationReaderFactory;
-use Helhum\ConfigLoader\InvalidConfigurationFileException;
-use Helhum\ConfigLoader\Reader\ClosureConfigReader;
-use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
-
 /***************************************************************
  *  Copyright notice
  *
@@ -28,6 +22,14 @@ use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Helhum\ConfigLoader\Config;
+use Helhum\ConfigLoader\ConfigurationReaderFactory;
+use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\CustomProcessingReader;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3BaseConfigReader;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3DefaultConfigPresenceReader;
+
 class Typo3Config implements ConfigReaderInterface
 {
     /**
@@ -44,19 +46,16 @@ class Typo3Config implements ConfigReaderInterface
         $readerFactory->setReaderFactoryForType(
             'typo3',
             function (string $resource) {
-                return new ClosureConfigReader(
-                    function () use ($resource) {
-                        $configFile = sprintf(getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/%s.php', $resource);
-                        if (!file_exists($configFile)) {
-                            throw new InvalidConfigurationFileException('Could not find TYPO3 configuration', 1517785215);
-                        }
-                        return require $configFile;
-                    }
-                );
+                return new Typo3BaseConfigReader($resource);
             },
             false
         );
-        $this->reader = $readerFactory->createRootReader($configFile);
+
+        $this->reader = new CustomProcessingReader(
+            new Typo3DefaultConfigPresenceReader(
+                file_exists($configFile) ? $readerFactory->createRootReader($configFile) : new ArrayReader([])
+            )
+        );
     }
 
     public function hasConfig(): bool
