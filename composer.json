@@ -6,7 +6,6 @@
         "php": ">=7.0 <7.3",
         "ext-json": "*",
         "typo3/cms-core": "^8.7",
-        "helhum/typo3-console": "^5.0.1",
         "helhum/config-loader": "^0.8",
         "symfony/console": "^2.7 || ^3.0 || ^4.0",
         "symfony/yaml": "^2.8 || ^3.0 || ^4.0",
@@ -15,10 +14,12 @@
     "require-dev": {
         "phpunit/phpunit": "^6.0",
         "composer/composer": "^1.6",
-        "mikey179/vfsStream": "^1.6"
+        "mikey179/vfsStream": "^1.6",
+        "helhum/typo3-console": "^5.0.1"
     },
     "suggest": {
-        "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI"
+        "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI",
+        "helhum/typo3-console": "Dump settings commands and auto dump of settings do not work without TYPO3 Console"
     },
     "autoload": {
         "psr-4": {
