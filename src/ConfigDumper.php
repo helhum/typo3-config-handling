@@ -98,7 +98,7 @@ EOF;
                     $code .= str_repeat('    ', $level + 1);
                     // Integer / string keys
                     $code .= is_int($key) ? $key . ' => ' : $this->getPhpCodeForPlaceholder($key, $referenceConfig, [], true) . ' => ';
-                    if ($level === 2 && $path[0] === 'EXT' && $path[1] === 'extConf') {
+                    if ($level === 2 && $path[0] === 'EXT' && $path[1] === 'extConf' && \is_array($arrayValue)) {
                         $code .= 'serialize(';
                         $code .= $this->getPhpCode($this->addDotsToTypoScript($arrayValue), $referenceConfig, array_merge($path, [$key]));
                         $code .= ')';
