@@ -60,10 +60,10 @@ EOF;
     {
         $composerRoot = getenv('TYPO3_PATH_COMPOSER_ROOT');
         $rootConfig = [
-            'prod-config' => $composerRoot . '/conf/config.yml',
-            'dev-config' => $composerRoot . '/conf/dev.config.yml',
-            'main-config' => null,
-            'ext-config' => null,
+            'main-config' => $composerRoot . '/config/settings.yaml',
+            'prod-config' => $composerRoot . '/config/settings.yaml',
+            'dev-config' => $composerRoot . '/config/dev.settings.yaml',
+            'ext-config' => $composerRoot . '/config/settings.extension.yaml',
         ];
         $composerConfig = \json_decode(file_get_contents($composerRoot . '/composer.json'), true);
         foreach ($rootConfig as $name => $defaultValue) {
@@ -71,14 +71,14 @@ EOF;
                 $rootConfig[$name] = $composerRoot . '/' . $composerConfig['extra']['helhum/typo3-config-handling'][$name];
             }
         }
-        if (empty($rootConfig['main-config'])) {
-            $rootConfig['main-config'] = $rootConfig['prod-config'];
+        if (!file_exists($rootConfig['prod-config'])) {
+            $rootConfig['prod-config'] = $rootConfig['main-config'];
         }
-        if (empty($rootConfig['ext-config'])) {
+        if (!file_exists($rootConfig['ext-config'])) {
             $rootConfig['ext-config'] = $rootConfig['main-config'];
         }
         if (!file_exists($rootConfig['dev-config'])) {
-            $rootConfig['dev-config'] = $rootConfig['prod-config'];
+            $rootConfig['dev-config'] = $rootConfig['main-config'];
         }
 
         return $rootConfig;

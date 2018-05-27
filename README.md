@@ -21,10 +21,10 @@ All paths are relative to your root composer.json directory and must not begin w
 {
     "extra": {
         "helhum/typo3-config-handling": {
-            "prod-config": "conf/config.yml",
-            "dev-config": "conf/dev.config.yml",
-            "main-config": "conf/config.yml",
-            "ext-config": "conf/config.yml"
+            "main-config": "config/settings.yaml",
+            "prod-config": "config/settings.yaml",
+            "dev-config": "config/dev.settings.yaml",
+            "ext-config": "config/settings.extension.yaml"
         }
     }
 }
@@ -36,8 +36,8 @@ All paths are relative to your root composer.json directory and must not begin w
 {
     "extra": {
         "helhum/typo3-config-handling": {
-            "prod-config": "conf/config_prod.yml",
-            "dev-config": "conf/config_dev.yml"
+            "prod-config": "config/config_prod.yaml",
+            "dev-config": "config/config_dev.yaml"
         }
     }
 }
@@ -49,8 +49,9 @@ All paths are relative to your root composer.json directory and must not begin w
 {
     "extra": {
         "helhum/typo3-config-handling": {
-            "prod-config": "Configuration/Settings.yml",
-            "dev-config": "Configuration/Development/Settings.yml"
+            "main-config": "Configuration/Settings.yaml",
+            "prod-config": "Configuration/Production/Settings.yaml",
+            "dev-config": "Configuration/Development/Settings.yaml"
         }
     }
 }
