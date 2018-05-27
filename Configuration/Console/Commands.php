@@ -4,10 +4,10 @@ declare(strict_types=1);
 return [
     'commands' => [
         'settings:dump' => [
-            'class' => \Helhum\TYPO3\ConfigHandling\Command\SettingsDumpCommand::class,
+            'class' => \Helhum\TYPO3\ConfigHandling\Command\DumpSettingsCommand::class,
         ],
         'settings:extract' => [
-            'class' => \Helhum\TYPO3\ConfigHandling\Command\SettingsExtractCommand::class,
+            'class' => \Helhum\TYPO3\ConfigHandling\Command\ExtractSettingsCommand::class,
         ],
     ],
     'runLevels' => [

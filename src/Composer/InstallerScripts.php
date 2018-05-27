@@ -23,7 +23,7 @@ namespace Helhum\TYPO3\ConfigHandling\Composer;
  ***************************************************************/
 
 use Composer\Script\Event;
-use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\DumpConfiguration;
+use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\DumpSettings;
 use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\SetupConfiguration;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScriptsRegistration;
@@ -43,7 +43,7 @@ class InstallerScripts implements InstallerScriptsRegistration
             $arguments[] = '--no-dev';
         }
         $scriptDispatcher->addInstallerScript(
-            new DumpConfiguration(),
+            new DumpSettings(),
             61
         );
     }

@@ -28,7 +28,7 @@ use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use Helhum\Typo3Console\Mvc\Cli\FailedSubProcessCommandException;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
 
-class DumpConfiguration implements InstallerScript
+class DumpSettings implements InstallerScript
 {
     public function run(ScriptEvent $event): bool
     {
