@@ -47,6 +47,7 @@ class ArrayReader implements ConfigReaderInterface
     {
         if ($this->configPath) {
             $config = Config::getValue($this->config, $this->configPath, []);
+
             return \is_array($config) && $config !== [];
         }
 
@@ -60,6 +61,7 @@ class ArrayReader implements ConfigReaderInterface
             if (!\is_array($config)) {
                 throw new \RuntimeException(sprintf('Config for path "%s" is not an array', $this->configPath), 1527373063);
             }
+
             return Config::getValue($this->config, $this->configPath, []);
         }
 

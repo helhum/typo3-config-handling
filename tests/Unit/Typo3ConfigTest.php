@@ -22,7 +22,6 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\Typo3Config\InvalidConfigurationFileException;
 use Helhum\TYPO3\ConfigHandling\Typo3Config;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
