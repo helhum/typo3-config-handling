@@ -89,7 +89,7 @@ class ConfigLoader
 
     private function getCacheDir(): string
     {
-        return getenv('TYPO3_PATH_COMPOSER_ROOT') . '/var/cache';
+        return getenv('TYPO3_PATH_ROOT') . '/typo3temp';
     }
 
     private function getCacheIdentifier(): string

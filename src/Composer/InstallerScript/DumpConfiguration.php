@@ -23,6 +23,7 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
  ***************************************************************/
 
 use Composer\Script\Event as ScriptEvent;
+use Composer\Util\Filesystem;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
 
@@ -46,6 +47,9 @@ class DumpConfiguration implements InstallerScript
         if (!$event->isDevMode()) {
             $arguments[] = '--no-dev';
         }
+        $filesystem = new Filesystem();
+        $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3conf/');
+        $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3temp/');
         $commandDispatcher = CommandDispatcher::createFromComposerRun($event);
         $commandDispatcher->executeCommand('settings:dump', $arguments);
 

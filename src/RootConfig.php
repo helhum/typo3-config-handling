@@ -43,15 +43,16 @@ class RootConfig
         return self::getRootConfig()['ext-config'];
     }
 
-    public static function getInitConfigFileContent(bool $strictPlaceholderParsing = false): string
+    public static function getInitConfigFileContent(bool $strictPlaceholderParsing = false, bool $enableCache = false): string
     {
         $strict = $strictPlaceholderParsing ? 'true' : 'false';
+        $cached = $enableCache ? 'true' : 'false';
 
         return <<<EOF
 (new \Helhum\TYPO3\ConfigHandling\ConfigLoader(
     \Helhum\TYPO3\ConfigHandling\RootConfig::getRootConfigFile(),
     $strict
-))->populate();
+))->populate($cached);
 EOF;
     }
 
