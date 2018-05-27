@@ -25,6 +25,7 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
 use Composer\Script\Event as ScriptEvent;
 use Composer\Util\Filesystem;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
+use Helhum\Typo3Console\Mvc\Cli\FailedSubProcessCommandException;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
 
 class DumpConfiguration implements InstallerScript
@@ -51,7 +52,11 @@ class DumpConfiguration implements InstallerScript
         $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3conf/');
         $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3temp/');
         $commandDispatcher = CommandDispatcher::createFromComposerRun($event);
-        $commandDispatcher->executeCommand('settings:dump', $arguments);
+        try {
+            $commandDispatcher->executeCommand('settings:dump', $arguments);
+        } catch (FailedSubProcessCommandException $e) {
+            $io->writeError(sprintf('<error>Dumping TYPO3 settings failed.%sOutput: "%s", ErrorOutput: "%s"</error>', PHP_EOL, $e->getOutputMessage(), $e->getErrorMessage()));
+        }
 
         return true;
     }
