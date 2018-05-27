@@ -65,7 +65,7 @@ class SetupConfiguration implements InstallerScript
      */
     private function shouldRun(ScriptEvent $event): bool
     {
-        return getenv('TYPO3_IS_SET_UP');
+        return (bool)getenv('TYPO3_IS_SET_UP');
     }
 
     /**
@@ -84,7 +84,7 @@ class SetupConfiguration implements InstallerScript
         }
         $io = $event->getIO();
         $io->writeError('');
-        $io->writeError('<info>Setting up TYPO3 Configuration</info>');
+        $io->writeError('<info>TYPO3: Setting up configuration</info>');
 
         $configurationManager = new ConfigurationManager();
         $configCleaner = new ConfigCleaner();
@@ -161,7 +161,7 @@ class SetupConfiguration implements InstallerScript
                 $dotEnvConfig[$placeholder['placeholder']['accessor']] = $foundValue;
                 unset($foundValue);
             } else {
-                if (false !== getenv($placeholder['placeholder']['accessor'])) {
+                if (getenv($placeholder['placeholder']['accessor']) !== false) {
                     $io->writeError(sprintf(
                         'Skipping "%s" env var, as it is already set. You may need to put it into your .env file though.',
                         $placeholder['placeholder']['accessor']

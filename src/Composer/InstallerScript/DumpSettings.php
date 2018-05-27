@@ -44,6 +44,9 @@ class DumpSettings implements InstallerScript
             return true;
         }
 
+        $io->writeError(
+            '<info>TYPO3: Dumping global settings to AdditionalConfiguration.php</info>'
+        );
         $arguments = [];
         if (!$event->isDevMode()) {
             $arguments[] = '--no-dev';
