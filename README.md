@@ -22,9 +22,9 @@ All paths are relative to your root composer.json directory and must not begin w
     "extra": {
         "helhum/typo3-config-handling": {
             "main-config": "config/settings.yaml",
-            "prod-config": "config/settings.yaml",
+            "prod-config": "config/prod.settings.yaml",
             "dev-config": "config/dev.settings.yaml",
-            "ext-config": "config/settings.extension.yaml"
+            "ext-config": "config/includes/extension.yaml"
         }
     }
 }

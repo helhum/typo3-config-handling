@@ -61,9 +61,9 @@ EOF;
         $composerRoot = getenv('TYPO3_PATH_COMPOSER_ROOT');
         $rootConfig = [
             'main-config' => $composerRoot . '/config/settings.yaml',
-            'prod-config' => $composerRoot . '/config/settings.yaml',
+            'prod-config' => $composerRoot . '/config/prod.settings.yaml',
             'dev-config' => $composerRoot . '/config/dev.settings.yaml',
-            'ext-config' => $composerRoot . '/config/settings.extension.yaml',
+            'ext-config' => $composerRoot . '/config/includes/extension.yaml',
         ];
         $composerConfig = \json_decode(file_get_contents($composerRoot . '/composer.json'), true);
         foreach ($rootConfig as $name => $defaultValue) {
