@@ -22,6 +22,7 @@ namespace Helhum\TYPO3\ConfigHandling;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -73,8 +74,9 @@ class ConfigExtractor
         $this->extensionConfigFile = $extensionConfigFile ?: RootConfig::getExtensionConfigFile();
     }
 
-    public function extractConfig(array $config, array $defaultConfig): bool
+    public function extractConfig(array $config, array $defaultConfig, string $configFile = null): bool
     {
+        $configFile = $configFile ?: $this->mainConfigFile;
         $extractedConfig = false;
         $mainConfig = $this->cleanFromAlreadyActiveValues($config);
         $extensionConfig = array_intersect_key($mainConfig, ['EXT' => ['extConf' => []]]);
@@ -82,8 +84,8 @@ class ConfigExtractor
 
         if (!empty($mainConfig)) {
             $this->configDumper->dumpToFile(
-                $this->cleanMergedValuesFromDefaultValues($mainConfig, $defaultConfig, $this->mainConfigFile),
-                $this->mainConfigFile
+                $this->cleanMergedValuesFromDefaultValues($mainConfig, $defaultConfig, $configFile),
+                $configFile
             );
             $extractedConfig = true;
         }
