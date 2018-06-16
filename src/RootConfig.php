@@ -43,6 +43,11 @@ class RootConfig
         return self::getRootConfig()['ext-config'];
     }
 
+    public static function getLocalConfigFile(): string
+    {
+        return self::getRootConfig()['local-config'];
+    }
+
     public static function getInitConfigFileContent(bool $strictPlaceholderParsing = false, bool $enableCache = false): string
     {
         $strict = $strictPlaceholderParsing ? 'true' : 'false';
@@ -63,6 +68,7 @@ EOF;
             'main-config' => $composerRoot . '/config/settings.yaml',
             'prod-config' => $composerRoot . '/config/prod.settings.yaml',
             'dev-config' => $composerRoot . '/config/dev.settings.yaml',
+            'local-config' => $composerRoot . '/config/local.settings.yaml',
             'ext-config' => $composerRoot . '/config/includes/extension.yaml',
         ];
         $composerConfig = \json_decode(file_get_contents($composerRoot . '/composer.json'), true);

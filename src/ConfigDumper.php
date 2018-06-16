@@ -27,7 +27,6 @@ use Helhum\ConfigLoader\InvalidConfigurationFileException;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Symfony\Component\Yaml\Yaml;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ConfigDumper
 {
@@ -56,11 +55,7 @@ return $exportedConfig;
 EOF;
         }
 
-        return GeneralUtility::writeFile(
-            $file,
-            $fileContent,
-            true
-        );
+        return (bool)file_put_contents($file, $fileContent);
     }
 
     private function generateCommentBlock(string $comment, string $commentChar = '//'): string

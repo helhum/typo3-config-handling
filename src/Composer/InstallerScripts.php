@@ -37,7 +37,6 @@ class InstallerScripts implements InstallerScriptsRegistration
             return;
         }
 
-        $scriptDispatcher->addInstallerScript(new SetupConfiguration(), 68);
         $arguments = [];
         if (!$event->isDevMode()) {
             $arguments[] = '--no-dev';
