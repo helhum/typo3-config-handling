@@ -133,7 +133,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function invalidPlaceHoldersAreNotReplacedWhenNotInStrictMode()
+    public function invalidPlaceHoldersAreReplacedWithNullNotInStrictMode()
     {
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader($root . '/not_existing_placeholder.yaml');
@@ -141,7 +141,7 @@ class ConfigLoaderTest extends TestCase
 
         $this->assertArrayHasKey('env', $actualResult);
 
-        $this->assertSame('%env(FOO)%', $actualResult['env']);
+        $this->assertNull($actualResult['env']);
     }
 
     /**

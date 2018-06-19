@@ -45,20 +45,6 @@ class ArrayReaderTest extends TestCase
     /**
      * @test
      */
-    public function readConfigThrowsExceptionOnNotExistingPath()
-    {
-        $this->expectException(PathDoesNotExistException::class);
-        $input = [
-            'foo' => 'bar',
-        ];
-
-        $reader = new ArrayReader($input, 'bla');
-        $reader->readConfig();
-    }
-
-    /**
-     * @test
-     */
     public function readConfigThrowsExceptionOnInvalidPath()
     {
         $this->expectException(\RuntimeException::class);
