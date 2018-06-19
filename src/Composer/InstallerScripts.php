@@ -33,10 +33,6 @@ class InstallerScripts implements InstallerScriptsRegistration
 {
     public static function register(Event $event, ScriptDispatcher $scriptDispatcher)
     {
-        if (!class_exists(CommandDispatcher::class)) {
-            return;
-        }
-
         $arguments = [];
         if (!$event->isDevMode()) {
             $arguments[] = '--no-dev';

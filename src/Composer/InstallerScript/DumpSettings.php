@@ -57,7 +57,7 @@ class DumpSettings implements InstallerScript
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3conf/');
         $filesystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3temp/');
-        $commandDispatcher = CommandDispatcher::createFromComposerRun($event);
+        $commandDispatcher = CommandDispatcher::createFromComposerRun();
         try {
             $commandDispatcher->executeCommand('settings:dump', $arguments);
         } catch (FailedSubProcessCommandException $e) {
