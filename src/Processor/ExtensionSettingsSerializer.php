@@ -36,7 +36,7 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
     public function processConfig(array $config): array
     {
         try {
-            $extensionsSettings = Config::getValue($config, 'EXT.extConf');
+            $extensionsSettings = Config::getValue($config, 'EXTENSIONS');
             if (!is_array($extensionsSettings)) {
                 return $config;
             }
