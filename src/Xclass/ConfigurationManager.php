@@ -22,16 +22,51 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\ConfigExtractor;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
-use Helhum\TYPO3\ConfigHandling\RootConfig;
+use Helhum\TYPO3\ConfigHandling\SettingsFiles;
+use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Crypto\Random;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ConfigurationManager extends \TYPO3\CMS\Core\Configuration\ConfigurationManager
+/**
+ * Handle loading and writing of global and local (instance specific)
+ * configuration.
+ *
+ * This class handles the access to the files
+ * - EXT:core/Configuration/DefaultConfiguration.php (default TYPO3_CONF_VARS)
+ * - typo3conf/LocalConfiguration.php (overrides of TYPO3_CONF_VARS)
+ * - typo3conf/AdditionalConfiguration.php (optional additional local code blocks)
+ *
+ * IMPORTANT:
+ *   This class is intended for internal core use ONLY.
+ *   Extensions should usually use the resulting $GLOBALS['TYPO3_CONF_VARS'] array,
+ *   do not try to modify settings in LocalConfiguration.php with an extension.
+ * @internal
+ */
+class ConfigurationManager
 {
+    /**
+     * @var ConfigLoader
+     */
+    private $configLoader;
+
     /**
      * @var ConfigExtractor
      */
@@ -42,46 +77,71 @@ class ConfigurationManager extends \TYPO3\CMS\Core\Configuration\ConfigurationMa
      */
     private $configDumper;
 
-    private $activeConfig;
+    /**
+     * @var ConfigCleaner
+     */
+    private $configCleaner;
 
-    public function __construct(ConfigExtractor $configExtractor = null, ConfigDumper $configDumper = null)
-    {
+    /**
+     * @var array
+     */
+    private $mainConfig;
+
+    /**
+     * @var string Path to default TYPO3_CONF_VARS file, relative to the public web folder
+     */
+    protected $defaultConfigurationFile = 'core/Configuration/DefaultConfiguration.php';
+
+    /**
+     * @var string Path to description file for TYPO3_CONF_VARS, relative to the public web folder
+     */
+    protected $defaultConfigurationDescriptionFile = 'core/Configuration/DefaultConfigurationDescription.yaml';
+
+    /**
+     * @var string Path to local overload TYPO3_CONF_VARS file, relative to the public web folder
+     */
+    protected $localConfigurationFile = 'LocalConfiguration.php';
+
+    /**
+     * @var string Path to additional local file, relative to the public web folder
+     */
+    protected $additionalConfigurationFile = 'AdditionalConfiguration.php';
+
+    /**
+     * @var string Path to factory configuration file used during installation as LocalConfiguration boilerplate
+     */
+    protected $factoryConfigurationFile = 'core/Configuration/FactoryConfiguration.php';
+
+    /**
+     * @var string Path to possible additional factory configuration file delivered by packages
+     */
+    protected $additionalFactoryConfigurationFile = 'AdditionalFactoryConfiguration.php';
+
+    /**
+     * Writing to these configuration paths is always allowed,
+     * even if the requested sub path does not exist yet.
+     *
+     * @var array
+     */
+    protected $whiteListedLocalConfigurationPaths = [
+        'EXT/extConf',
+        'EXTCONF',
+        'DB',
+        'SYS/caching/cacheConfigurations',
+        'SYS/session',
+        'EXTENSIONS',
+    ];
+
+    public function __construct(
+        ConfigLoader $configLoader = null,
+        ConfigExtractor $configExtractor = null,
+        ConfigDumper $configDumper = null,
+        ConfigCleaner $configCleaner = null
+    ) {
+        $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configExtractor = $configExtractor ?: new ConfigExtractor($this->configDumper);
-        $this->activeConfig = (new ConfigCleaner())->cleanConfig((new ConfigLoader(RootConfig::getRootConfigFile()))->load(), $this->getDefaultConfiguration());
-    }
-
-    public function getLocalConfiguration()
-    {
-        return $this->activeConfig;
-    }
-
-    public function getLocalConfigurationValueByPath($path)
-    {
-        return ArrayUtility::getValueByPath($this->activeConfig, $path);
-    }
-
-    public function writeLocalConfiguration(array $configuration)
-    {
-        $localConfigurationFile = $this->getLocalConfigurationFileLocation();
-        if (!$this->canWriteConfiguration()) {
-            throw new \RuntimeException(
-                $localConfigurationFile . ' is not writable.',
-                1346323822
-            );
-        }
-        if (!empty($removedPaths = $this->findRemovedConfigPaths($this->activeConfig, $configuration))) {
-            throw new \RuntimeException(sprintf('The config options "%s" have been removed, but remove support is not yet implemented in helhum/typo3-config-handling. Remove these options manually from your configuration.', implode(', ', $removedPaths)), 1497466197);
-        }
-        $this->configExtractor->extractConfig($configuration, $this->getDefaultConfiguration());
-        $configuration = GeneralUtility::getApplicationContext()->isProduction() ? $configuration : [];
-
-        return $this->configDumper->dumpToFile($configuration, $localConfigurationFile, "Auto generated by helhum/typo3-config-handling\nDo not edit this file");
-    }
-
-    public function getMergedLocalConfiguration(): array
-    {
-        return $this->activeConfig;
+        $this->configCleaner = $configCleaner ?: new ConfigCleaner();
     }
 
     private function findRemovedConfigPaths(array $array1, array $array2, array $removedPaths = [], string $path = ''): array
@@ -97,5 +157,348 @@ class ConfigurationManager extends \TYPO3\CMS\Core\Configuration\ConfigurationMa
         }
 
         return $removedPaths;
+    }
+
+    /**
+     * Return default configuration array
+     *
+     * @return array
+     */
+    public function getDefaultConfiguration()
+    {
+        return require $this->getDefaultConfigurationFileLocation();
+    }
+
+    /**
+     * Get the file location of the default configuration file,
+     * currently the path and filename.
+     *
+     * @return string
+     * @internal
+     */
+    public function getDefaultConfigurationFileLocation()
+    {
+        return Environment::getFrameworkBasePath() . '/' . $this->defaultConfigurationFile;
+    }
+
+    /**
+     * Get the file location of the default configuration description file,
+     * currently the path and filename.
+     *
+     * @return string
+     * @internal
+     */
+    public function getDefaultConfigurationDescriptionFileLocation()
+    {
+        return Environment::getFrameworkBasePath() . '/' . $this->defaultConfigurationDescriptionFile;
+    }
+
+    /**
+     * Return local configuration array typo3conf/LocalConfiguration.php
+     *
+     * @return array Content array of local configuration file
+     */
+    public function getLocalConfiguration()
+    {
+        return $this->configCleaner->cleanConfig($this->getMergedLocalConfiguration(), $this->getDefaultConfiguration());
+    }
+
+    /**
+     * Get the file location of the local configuration file,
+     * currently the path and filename.
+     *
+     * @return string
+     * @internal
+     */
+    public function getLocalConfigurationFileLocation()
+    {
+        return Environment::getLegacyConfigPath() . '/' . $this->localConfigurationFile;
+    }
+
+    /**
+     * Returns local configuration array merged with default configuration
+     *
+     * @return array
+     */
+    public function getMergedLocalConfiguration(): array
+    {
+        if ($this->mainConfig === null) {
+            $this->mainConfig = $this->configLoader->load();
+        }
+
+        return $this->mainConfig;
+    }
+
+    /**
+     * Get the file location of the additional configuration file,
+     * currently the path and filename.
+     *
+     * @return string
+     * @internal
+     */
+    public function getAdditionalConfigurationFileLocation()
+    {
+        return Environment::getLegacyConfigPath() . '/' . $this->additionalConfigurationFile;
+    }
+
+    /**
+     * Get absolute file location of factory configuration file
+     *
+     * @return string
+     */
+    protected function getFactoryConfigurationFileLocation()
+    {
+        return Environment::getFrameworkBasePath() . '/' . $this->factoryConfigurationFile;
+    }
+
+    /**
+     * Get absolute file location of factory configuration file
+     *
+     * @return string
+     */
+    protected function getAdditionalFactoryConfigurationFileLocation()
+    {
+        return Environment::getPublicPath() . '/' . $this->additionalFactoryConfigurationFile;
+    }
+
+    /**
+     * Override local configuration with new values.
+     *
+     * @param array $configurationToMerge Override configuration array
+     */
+    public function updateLocalConfiguration(array $configurationToMerge)
+    {
+        // We take care exposing the legacy extension config ourselves
+        unset($configurationToMerge['EXT']['extConf']);
+        $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
+        if (!$this->canWriteConfiguration()) {
+            throw new \RuntimeException(
+                $overrideSettingsFile . ' is not writable.',
+                1346323822
+            );
+        }
+        if ($this->configExtractor->extractConfig($configurationToMerge, $this->getMergedLocalConfiguration(), $overrideSettingsFile)) {
+            $this->configLoader->flushCache();
+        }
+    }
+
+    /**
+     * Get a value at given path from default configuration
+     *
+     * @param string $path Path to search for
+     * @return mixed Value at path
+     */
+    public function getDefaultConfigurationValueByPath($path)
+    {
+        return ArrayUtility::getValueByPath($this->getDefaultConfiguration(), $path);
+    }
+
+    /**
+     * Get a value at given path from local configuration
+     *
+     * @param string $path Path to search for
+     * @return mixed Value at path
+     */
+    public function getLocalConfigurationValueByPath($path)
+    {
+        return ArrayUtility::getValueByPath($this->getLocalConfiguration(), $path);
+    }
+
+    /**
+     * Get a value from configuration, this is default configuration
+     * merged with local configuration
+     *
+     * @param string $path Path to search for
+     * @return mixed
+     */
+    public function getConfigurationValueByPath($path)
+    {
+        return ArrayUtility::getValueByPath($this->getMergedLocalConfiguration(), $path);
+    }
+
+    /**
+     * Update a given path in local configuration to a new value.
+     *
+     * @param string $path Path to update
+     * @param mixed $value Value to set
+     * @return bool TRUE on success
+     */
+    public function setLocalConfigurationValueByPath($path, $value)
+    {
+        return $this->setLocalConfigurationValuesByPathValuePairs([$path => $value]);
+    }
+
+    /**
+     * Update / set a list of path and value pairs in local configuration file
+     *
+     * @param array $pairs Key is path, value is value to set
+     * @return bool TRUE on success
+     */
+    public function setLocalConfigurationValuesByPathValuePairs(array $pairs)
+    {
+        $localConfiguration = [];
+        foreach ($pairs as $path => $value) {
+            if ($this->isValidLocalConfigurationPath($path)) {
+                $localConfiguration = ArrayUtility::setValueByPath($localConfiguration, $path, $value);
+            }
+        }
+        $this->updateLocalConfiguration($localConfiguration);
+
+        return true;
+    }
+
+    /**
+     * Remove keys from LocalConfiguration
+     *
+     * @param array $keys Array with key paths to remove from LocalConfiguration
+     * @return bool TRUE if something was removed
+     */
+    public function removeLocalConfigurationKeysByPath(array $keys)
+    {
+        $result = false;
+        $localConfiguration = $this->getLocalConfiguration();
+        foreach ($keys as $path) {
+            // Remove key if path is within LocalConfiguration
+            if (ArrayUtility::isValidPath($localConfiguration, $path)) {
+                $result = true;
+                $localConfiguration = ArrayUtility::removeByPath($localConfiguration, $path);
+            }
+        }
+        if ($result) {
+            $this->writeLocalConfiguration($localConfiguration);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Enables a certain feature and writes the option to LocalConfiguration.php
+     * Short-hand method
+     *
+     * @param string $featureName something like "InlineSvgImages"
+     * @return bool true on successful writing the setting
+     */
+    public function enableFeature(string $featureName): bool
+    {
+        return $this->setLocalConfigurationValueByPath('SYS/features/' . $featureName, true);
+    }
+
+    /**
+     * Disables a feature and writes the option to LocalConfiguration.php
+     * Short-hand method
+     *
+     * @param string $featureName something like "InlineSvgImages"
+     * @return bool true on successful writing the setting
+     */
+    public function disableFeature(string $featureName): bool
+    {
+        return $this->setLocalConfigurationValueByPath('SYS/features/' . $featureName, false);
+    }
+
+    /**
+     * Checks if the configuration can be written.
+     *
+     * @return bool
+     * @internal
+     */
+    public function canWriteConfiguration()
+    {
+        $fileLocation = SettingsFiles::getOverrideSettingsFile();
+
+        return @is_writable(file_exists($fileLocation) ? $fileLocation : Environment::getConfigPath() . '/');
+    }
+
+    /**
+     * Reads the configuration array and exports it to the global variable
+     *
+     * @internal
+     * @throws \UnexpectedValueException
+     */
+    public function exportConfiguration()
+    {
+        $this->configLoader->populate();
+        $this->mainConfig = null;
+    }
+
+    /**
+     * Write local configuration array to typo3conf/LocalConfiguration.php
+     *
+     * @param array $configuration The local configuration to be written
+     * @throws \RuntimeException
+     * @return bool TRUE on success
+     * @internal
+     */
+    public function writeLocalConfiguration(array $configuration)
+    {
+        $configuration = $this->configCleaner->cleanConfig($configuration, $this->getMergedLocalConfiguration());
+        $this->updateLocalConfiguration($configuration);
+
+        // Too many places require this file to exist, so we make sure to create it
+        return $this->configDumper->dumpToFile([], Environment::getLegacyConfigPath() . '/LocalConfiguration.php', "Auto generated by helhum/typo3-config-handling\nDo not edit this file");
+    }
+
+    /**
+     * Write additional configuration array to typo3conf/AdditionalConfiguration.php
+     *
+     * @param array $additionalConfigurationLines The configuration lines to be written
+     * @throws \RuntimeException
+     * @return bool TRUE on success
+     * @internal
+     */
+    public function writeAdditionalConfiguration(array $additionalConfigurationLines)
+    {
+        return GeneralUtility::writeFile(
+            Environment::getPublicPath() . '/' . $this->additionalConfigurationFile,
+            '<?php' . LF .
+                implode(LF, $additionalConfigurationLines) . LF
+        );
+    }
+
+    /**
+     * Uses FactoryConfiguration file and a possible AdditionalFactoryConfiguration
+     * file in typo3conf to create a basic LocalConfiguration.php. This is used
+     * by the install tool in an early step.
+     *
+     * @throws \RuntimeException
+     * @internal
+     */
+    public function createLocalConfigurationFromFactoryConfiguration()
+    {
+        if (file_exists($this->getLocalConfigurationFileLocation())) {
+            throw new \RuntimeException(
+                'LocalConfiguration.php exists already',
+                1364836026
+            );
+        }
+        $localConfigurationArray = require $this->getFactoryConfigurationFileLocation();
+        $additionalFactoryConfigurationFileLocation = $this->getAdditionalFactoryConfigurationFileLocation();
+        if (file_exists($additionalFactoryConfigurationFileLocation)) {
+            $additionalFactoryConfigurationArray = require $additionalFactoryConfigurationFileLocation;
+            ArrayUtility::mergeRecursiveWithOverrule(
+                $localConfigurationArray,
+                $additionalFactoryConfigurationArray
+            );
+        }
+        $randomKey = GeneralUtility::makeInstance(Random::class)->generateRandomHexString(96);
+        $localConfigurationArray['SYS']['encryptionKey'] = $randomKey;
+        $this->writeLocalConfiguration($localConfigurationArray);
+    }
+
+    /**
+     * Check if access / write to given path in local configuration is allowed.
+     *
+     * @param string $path Path to search for
+     * @return bool TRUE if access is allowed
+     */
+    protected function isValidLocalConfigurationPath($path)
+    {
+        // Early return for white listed paths
+        foreach ($this->whiteListedLocalConfigurationPaths as $whiteListedPath) {
+            if (GeneralUtility::isFirstPartOfStr($path, $whiteListedPath)) {
+                return true;
+            }
+        }
+
+        return ArrayUtility::isValidPath($this->getDefaultConfiguration(), $path);
     }
 }

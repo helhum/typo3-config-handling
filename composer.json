@@ -24,7 +24,10 @@
     "autoload": {
         "psr-4": {
             "Helhum\\TYPO3\\ConfigHandling\\": "src/"
-        }
+        },
+        "files": [
+            "res/php/autoload-include.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
