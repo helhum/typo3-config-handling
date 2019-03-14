@@ -22,7 +22,6 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit\Reader;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\ConfigLoader\PathDoesNotExistException;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use PHPUnit\Framework\TestCase;
 

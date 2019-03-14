@@ -22,9 +22,8 @@ namespace Helhum\TYPO3\ConfigHandling;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Core\Environment;
 
 class ConfigExtractor
 {
@@ -51,49 +50,35 @@ class ConfigExtractor
     /**
      * @var string
      */
-    private $mainConfigFile;
-
-    /**
-     * @var string
-     */
-    private $extensionConfigFile;
+    private $overrideConfigFile;
 
     public function __construct(
         ConfigDumper $configDumper = null,
         ConfigCleaner $configCleaner = null,
         ConfigLoader $configLoader = null,
         ConfigurationReaderFactory $readerFactory = null,
-        string $mainConfigFile = null,
-        string $extensionConfigFile = null
+        string $overrideConfigFile = null
     ) {
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configCleaner = $configCleaner ?: new ConfigCleaner();
-        $this->configLoader = $configLoader ?: new ConfigLoader(RootConfig::getRootConfigFile());
+        $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
         $this->readerFactory = $readerFactory ?: new ConfigurationReaderFactory();
-        $this->mainConfigFile = $mainConfigFile ?: RootConfig::getMainConfigFile();
-        $this->extensionConfigFile = $extensionConfigFile ?: RootConfig::getExtensionConfigFile();
+        $this->overrideConfigFile = $overrideConfigFile ?: SettingsFiles::getOverrideSettingsFile();
     }
 
     public function extractConfig(array $config, array $defaultConfig, string $configFile = null): bool
     {
-        $configFile = $configFile ?: $this->mainConfigFile;
+        $configFile = $configFile ?: $this->overrideConfigFile;
         $extractedConfig = false;
-        $mainConfig = $this->cleanFromAlreadyActiveValues($config);
-        $extensionConfig = array_intersect_key($mainConfig, ['EXT' => ['extConf' => []]]);
-        $mainConfig = array_diff_key($mainConfig, ['EXT' => ['extConf' => []]]);
+        $mainConfig = $this->configCleaner->cleanConfig(
+            $config,
+            $defaultConfig
+        );
 
         if (!empty($mainConfig)) {
             $this->configDumper->dumpToFile(
-                $this->cleanMergedValuesFromDefaultValues($mainConfig, $defaultConfig, $configFile),
+                $this->mergeWithCurrentValuesCleanedFromBaseValues($mainConfig, $configFile),
                 $configFile
-            );
-            $extractedConfig = true;
-        }
-
-        if (!empty($extensionConfig)) {
-            $this->configDumper->dumpToFile(
-                $this->cleanMergedValuesFromDefaultValues($extensionConfig, [], $this->extensionConfigFile),
-                $this->extensionConfigFile
             );
             $extractedConfig = true;
         }
@@ -101,15 +86,7 @@ class ConfigExtractor
         return $extractedConfig;
     }
 
-    private function cleanFromAlreadyActiveValues(array $config): array
-    {
-        return $this->configCleaner->cleanConfig(
-            $this->unserializeExtensionConfig($config),
-            $this->unserializeExtensionConfig($this->configLoader->load())
-        );
-    }
-
-    private function cleanMergedValuesFromDefaultValues(array $config, array $defaultConfig, string $configFile): array
+    private function mergeWithCurrentValuesCleanedFromBaseValues(array $config, string $configFile): array
     {
         $currentConfig = [];
         if (file_exists($configFile)) {
@@ -117,24 +94,8 @@ class ConfigExtractor
         }
 
         return $this->configCleaner->cleanConfig(
-            array_replace_recursive($currentConfig, $this->unserializeExtensionConfig($config)),
-            $this->unserializeExtensionConfig($defaultConfig)
+            array_replace_recursive($currentConfig, $config),
+            $this->configLoader->loadBase()
         );
-    }
-
-    private function unserializeExtensionConfig(array $config): array
-    {
-        if (!isset($config['EXT']['extConf']) || !is_array($config['EXT']['extConf'])) {
-            return $config;
-        }
-        $unserializedConfig = $config;
-        foreach ($config['EXT']['extConf'] as $extensionKey => $typo3ExtSettings) {
-            if (!is_string($typo3ExtSettings)) {
-                continue;
-            }
-            $unserializedConfig['EXT']['extConf'][$extensionKey] = GeneralUtility::removeDotsFromTS(unserialize($typo3ExtSettings, [false]));
-        }
-
-        return $unserializedConfig;
     }
 }

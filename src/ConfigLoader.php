@@ -25,91 +25,90 @@ namespace Helhum\TYPO3\ConfigHandling;
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
+use TYPO3\CMS\Core\Configuration\SiteConfiguration;
+use TYPO3\CMS\Core\Service\OpcodeCacheService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ConfigLoader
 {
     /**
-     * @var string
-     */
-    private $configFile;
-
-    /**
      * @var bool
      */
-    private $strictPlaceholderParsing;
+    private $isProduction;
 
-    /**
-     * @var ConfigurationLoader
-     */
-    private $loader;
-
-    public function __construct(string $configFile, bool $strictPlaceholderParsing = false)
+    public function __construct(bool $isProduction)
     {
-        $this->configFile = $configFile;
-        $this->strictPlaceholderParsing = $strictPlaceholderParsing;
-        $this->loader = $this->buildLoader($configFile);
+        $this->isProduction = $isProduction;
     }
 
-    public function populate(bool $enableCache = false)
+    public function populate()
     {
-        if ($enableCache) {
-            $cachedLoader = new CachedConfigurationLoader(
-                $this->getCacheDir(),
-                $this->getCacheIdentifier(),
-                function () {
-                    return $this->loader;
-                }
-            );
-            $config = $cachedLoader->load();
+        $shouldCache = $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
+        $hasCache = $shouldCache ? file_exists($cacheFile = $this->getCacheFile()) : false;
+        if ($hasCache) {
+            $config = require $cacheFile;
         } else {
             $config = $this->load();
         }
         $GLOBALS['TYPO3_CONF_VARS'] = $config;
+        if ($shouldCache && !$hasCache && isset($cacheFile)) {
+            $configString = var_export($config, true);
+            $configString = <<<EOF
+<?php
+return
+$configString;
+
+EOF;
+            GeneralUtility::mkdir_deep(dirname($cacheFile));
+            GeneralUtility::writeFile($cacheFile, $configString);
+        }
     }
 
     public function load(): array
     {
-        return $this->loader->load();
+        return $this->buildLoader()->load();
     }
 
-    private function buildLoader(string $configFile): ConfigurationLoader
+    public function loadBase(): array
     {
+        $configFile = SettingsFiles::getSettingsFile($this->isProduction);
+
+        return (new Typo3Config($configFile))->readBaseConfig();
+    }
+
+    public function flushCache(): void
+    {
+        if (!$this->isProduction) {
+            return;
+        }
+        @unlink($this->getCacheFile());
+        GeneralUtility::makeInstance(OpcodeCacheService::class)->clearAllActive();
+    }
+
+    private function getCacheFile(): string
+    {
+        return getenv('TYPO3_PATH_APP') . '/var/cache/code/cache_core' . sprintf(CachedConfigurationLoader::CACHE_FILE_PATTERN, $this->getCacheIdentifier());
+    }
+
+    private function buildLoader(): ConfigurationLoader
+    {
+        $configFile = SettingsFiles::getSettingsFile($this->isProduction);
+
         return new ConfigurationLoader(
             [
                 new Typo3Config($configFile),
             ],
             [
-                new PlaceholderValue($this->strictPlaceholderParsing),
+                new PlaceholderValue(false),
                 new ExtensionSettingsSerializer(),
             ]
         );
     }
 
-    private function getCacheDir(): string
-    {
-        return getenv('TYPO3_PATH_ROOT') . '/typo3temp';
-    }
-
     private function getCacheIdentifier(): string
     {
-        $rootDir = getenv('TYPO3_PATH_COMPOSER_ROOT');
-        $confDir = dirname($this->configFile);
-        $fileWatches = array_merge(
-            [
-                $rootDir . '/.env',
-                $rootDir . '/composer.json',
-            ],
-            glob($confDir . '/*.*')
-        );
-        $identifier = GeneralUtility::getApplicationContext();
-        foreach ($fileWatches as $fileWatch) {
-            if (file_exists($fileWatch)) {
-                $identifier .= filemtime($fileWatch);
-            }
-        }
-
-        return md5($identifier);
+        return 'production';
     }
 }

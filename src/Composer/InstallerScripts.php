@@ -24,9 +24,7 @@ namespace Helhum\TYPO3\ConfigHandling\Composer;
 
 use Composer\Script\Event;
 use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\DumpSettings;
-use Helhum\TYPO3\ConfigHandling\Composer\InstallerScript\SetupConfiguration;
-use Helhum\TYPO3\ConfigHandling\RootConfig;
-use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
+use Helhum\TYPO3\ConfigHandling\SettingsFiles;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScriptsRegistration;
 use TYPO3\CMS\Composer\Plugin\Core\ScriptDispatcher;
 
@@ -34,20 +32,22 @@ class InstallerScripts implements InstallerScriptsRegistration
 {
     public static function register(Event $event, ScriptDispatcher $scriptDispatcher)
     {
-        $arguments = [];
-        if (!$event->isDevMode()) {
-            $arguments[] = '--no-dev';
-        }
-        $additionalInstallStepsFile = dirname(RootConfig::getMainConfigFile()) . '/install.settings.yaml';
+        self::exposeInstallSettingsFile();
+        $scriptDispatcher->addInstallerScript(
+            new DumpSettings(),
+            61
+        );
+    }
+
+    private static function exposeInstallSettingsFile(): bool
+    {
+        $additionalInstallStepsFile = SettingsFiles::getInstallStepsFile();
         if (file_exists($additionalInstallStepsFile)) {
             putenv('TYPO3_INSTALL_SETUP_STEPS=' . $additionalInstallStepsFile);
             $_ENV['TYPO3_INSTALL_SETUP_STEPS'] = $additionalInstallStepsFile;
             $_SERVER['TYPO3_INSTALL_SETUP_STEPS'] = $additionalInstallStepsFile;
         }
 
-        $scriptDispatcher->addInstallerScript(
-            new DumpSettings(),
-            61
-        );
+        return true;
     }
 }

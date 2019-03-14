@@ -24,8 +24,8 @@ namespace Helhum\TYPO3\ConfigHandling;
 
 use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
+use Helhum\ConfigLoader\Reader\CollectionReader;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
-use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\CustomProcessingReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3BaseConfigReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3DefaultConfigPresenceReader;
@@ -35,14 +35,16 @@ class Typo3Config implements ConfigReaderInterface
     /**
      * @var ConfigReaderInterface
      */
+    private $baseReader;
+
+    /**
+     * @var ConfigReaderInterface
+     */
     private $reader;
 
-    public function __construct(string $configFile = null, ConfigurationReaderFactory $readerFactory = null)
+    public function __construct(string $configFile, ConfigurationReaderFactory $readerFactory = null)
     {
-        $configFile = $configFile ?: RootConfig::getRootConfigFile();
-        if ($readerFactory === null) {
-            $readerFactory = new ConfigurationReaderFactory(dirname($configFile));
-        }
+        $readerFactory = $readerFactory ?? new ConfigurationReaderFactory(dirname($configFile));
         $readerFactory->setReaderFactoryForType(
             'typo3',
             function (string $resource) {
@@ -50,10 +52,13 @@ class Typo3Config implements ConfigReaderInterface
             },
             false
         );
-
+        $this->baseReader = new Typo3DefaultConfigPresenceReader(
+            $readerFactory->createRootReader($configFile)
+        );
         $this->reader = new CustomProcessingReader(
-            new Typo3DefaultConfigPresenceReader(
-                file_exists($configFile) ? $readerFactory->createRootReader($configFile) : new ArrayReader([])
+            new CollectionReader(
+                $this->baseReader,
+                $readerFactory->createRootReader(SettingsFiles::getOverrideSettingsFile())
             )
         );
     }
@@ -66,6 +71,11 @@ class Typo3Config implements ConfigReaderInterface
     public function readConfig(): array
     {
         return $this->reader->readConfig();
+    }
+
+    public function readBaseConfig(): array
+    {
+        return $this->baseReader->readConfig();
     }
 
     public function getValue(string $path)

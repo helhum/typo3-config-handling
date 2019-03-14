@@ -23,8 +23,9 @@ namespace Helhum\TYPO3\ConfigHandling\Install\Action;
  ***************************************************************/
 
 use Helhum\ConfigLoader\Config;
+use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
-use Helhum\TYPO3\ConfigHandling\RootConfig;
+use Helhum\TYPO3\ConfigHandling\SettingsFiles;
 use Helhum\Typo3Console\Install\Action\InstallActionInterface;
 use Helhum\Typo3Console\Install\Action\InteractiveActionArguments;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
@@ -69,7 +70,15 @@ class SetupConfigurationAction implements InstallActionInterface
 
     public function execute(array $actionDefinition, array $options = []): bool
     {
-        $configFile = RootConfig::getLocalConfigFile();
+        $this->populateCustomSettings($actionDefinition, $options);
+        $this->storeCustomSettingsOverrides($actionDefinition);
+        $this->copyEnvDistFile();
+
+        return true;
+    }
+
+    private function populateCustomSettings(array $actionDefinition, array $options)
+    {
         $customSettingsDefinition = $actionDefinition['customSettings'] ?? [];
 
         $customConfig = $customSettingsDefinition['defaults'] ?? [];
@@ -79,27 +88,31 @@ class SetupConfigurationAction implements InstallActionInterface
         foreach ($arguments as $argumentName => $argumentValue) {
             $customConfig = Config::setValue($customConfig, $argumentDefinitions[$argumentName]['configPath'], $argumentValue);
         }
+        $this->addValuesToOverrides($customConfig);
+    }
 
-        $this->configDumper->dumpToFile($customConfig, $configFile);
-
-        if (!empty($actionDefinition['extractConfig'])) {
-            $commandArguments = [
-                '--config-file',
-                $configFile
-            ];
-            $ignoredPaths = $actionDefinition['extractConfig']['ignorePaths'] ?? [];
-            foreach ($ignoredPaths as $ignoredPath) {
-                $commandArguments[] = '--ignore-path';
-                $commandArguments[] = $ignoredPath;
-            }
-
-            $this->commandDispatcher->executeCommand(
-                'settings:extract',
-                $commandArguments
-            );
+    private function storeCustomSettingsOverrides(array $actionDefinition)
+    {
+        $customOverrideSettingsFile = $actionDefinition['customOverrideSettings'] ?? '';
+        if (!empty($customOverrideSettingsFile)) {
+            $factory = new ConfigurationReaderFactory(dirname(SettingsFiles::getInstallStepsFile()));
+            $this->addValuesToOverrides($factory->createReader($customOverrideSettingsFile)->readConfig());
         }
-        $this->commandDispatcher->executeCommand('settings:dump');
+    }
 
-        return true;
+    private function addValuesToOverrides(array $values)
+    {
+        $configFile = SettingsFiles::getOverrideSettingsFile();
+        $currentConfig = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile)->readConfig();
+        $this->configDumper->dumpToFile(array_replace_recursive($currentConfig, $values), $configFile);
+    }
+
+    private function copyEnvDistFile()
+    {
+        $envFile = getenv('TYPO3_PATH_COMPOSER_ROOT') . '/.env';
+        $envDistFile = getenv('TYPO3_PATH_COMPOSER_ROOT') . '/.env.dist';
+        if (!file_exists($envFile) && file_exists($envDistFile)) {
+            copy($envDistFile, $envFile);
+        }
     }
 }

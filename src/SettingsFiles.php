@@ -1,0 +1,52 @@
+<?php
+declare(strict_types=1);
+namespace Helhum\TYPO3\ConfigHandling;
+
+class SettingsFiles
+{
+    /**
+     * @var array
+     */
+    private static $cachedComposerConfig;
+
+    public static function getSettingsFile(bool $isProduction): string
+    {
+        if ($isProduction || !file_exists(self::getComposerConfig()['dev-settings'])) {
+            return self::getComposerConfig()['settings'];
+        }
+
+        return self::getComposerConfig()['dev-settings'];
+    }
+
+    public static function getOverrideSettingsFile(): string
+    {
+        return self::getComposerConfig()['override-settings'];
+    }
+
+    public static function getInstallStepsFile(): string
+    {
+        return self::getComposerConfig()['install-steps'];
+    }
+
+    private static function getComposerConfig(): array
+    {
+        if (self::$cachedComposerConfig) {
+            return self::$cachedComposerConfig;
+        }
+        $appRoot = getenv('TYPO3_PATH_APP');
+        $rootConfig = [
+            'settings' => $appRoot . '/config/settings.yaml',
+            'dev-settings' => $appRoot . '/config/dev.settings.yaml',
+            'override-settings' => $appRoot . '/config/override.settings.yaml',
+            'install-steps' => $appRoot . '/config/setup/install.steps.yaml',
+        ];
+        $composerConfig = \json_decode(file_get_contents($appRoot . '/composer.json'), true);
+        foreach ($rootConfig as $name => $defaultValue) {
+            if (!empty($composerConfig['extra']['helhum/typo3-config-handling'][$name])) {
+                $rootConfig[$name] = $appRoot . '/' . $composerConfig['extra']['helhum/typo3-config-handling'][$name];
+            }
+        }
+
+        return self::$cachedComposerConfig = $rootConfig;
+    }
+}
