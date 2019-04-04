@@ -18,7 +18,6 @@
         "jakub-onderka/php-parallel-lint": "^1.0",
         "mikey179/vfsStream": "^1.6"
     },
-    "version": "1.0.0",
     "suggest": {
         "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI",
         "defuse/php-encryption": "For having the encrypt/decrypt feature of settings"
