@@ -41,6 +41,7 @@ class DumpSettings implements InstallerScript
         $fileSystem = new Filesystem();
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config');
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/var/cache/code/cache_core');
+        $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3conf/');
         $localConfigurationFile = getenv('TYPO3_PATH_ROOT') . '/typo3conf/LocalConfiguration.php';
         $mainSettingsFile = SettingsFiles::getSettingsFile(true);
         if (!$this->allowGeneration($localConfigurationFile)) {
