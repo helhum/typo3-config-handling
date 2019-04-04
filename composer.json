@@ -6,7 +6,7 @@
         "php": "^7.2",
         "ext-json": "*",
         "helhum/config-loader": ">=0.9 <0.13",
-        "helhum/typo3-console": "^5.5",
+        "helhum/typo3-console": "^5.5 || dev-master",
         "symfony/console": "^4.0",
         "symfony/yaml": "^4.0",
         "typo3/cms-composer-installers": "^2.0",
