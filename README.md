@@ -20,7 +20,7 @@ manual changes to configuration files affect the cache. However, when using any 
 the cache is automatically flushed. To avoid hassle, it is recommended to set `TYPO3_CONTEXT` set to `Development`
 in your development environments.
 
-## Benefits when using this package
+## Features
 
 ### Settings depending on the environment
 Depending in which environment (on which server) TYPO3 runs, some settings need to be changed to match this environment.
@@ -37,6 +37,33 @@ With TYPO3 Config Handling it is also possible to provide system settings in Yam
 ### Configuration files stored in `config` folder
 TYPO3 stores its configuration files in the document root. When using TYPO3 Config handling, the configuration files are stored in the `config` folder
 along side with the TYPO3 sites configuration files.
+
+### Enhanced site configuration
+TYPO3 9.5 introduced the notion of a site. Sites are configured in yaml files stored in `config/sites/<site-identifier>/config.yaml`.
+This great concept comes with some small limitations, that can be overcome by using this package:
+1. Indentation of the yaml files is 2 spaces, which makes reading them hard. This is changed by now using 4 spaces
+   when the configuration files are re-written when using the sites module.
+1. While importing other files is possible using the imports feature, the imports feature is limited
+   to import files either from extensions or relative to the TYPO3 main directory (PATH_site).
+   This is fixed by using the more advanced handling of imports relative to the current config file
+1. TYPO3 by default only supports `env` placeholder replacement, which means environment dependent site
+   configuration must make use of environment variables. To overcome this limitation, with this package it is possible
+   to override site configuration within the regular main configuration:
+   ```yaml
+   Site:
+        site-identifier:
+            base: 'https://overridden.tld' 
+   ```
+   With that it is possible to put all environment specific configuration into `override.settings.yaml`, without
+   the need to expose some settings in the environment.
+To enable this feature, an XCLASS needs to be registered in your main configuration:
+```yaml
+SYS:
+    Objects:
+        TYPO3\CMS\Core\Configuration\SiteConfiguration:
+            className: Helhum\TYPO3\ConfigHandling\Typo3SiteConfiguration
+
+```
 
 ## Migrating your TYPO3 project to use TYPO3 Config Handling
 1. [Install](#install) the package using composer

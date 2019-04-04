@@ -42,7 +42,7 @@ class ConfigDumper
                     $fileContent .= Yaml::dump(['imports' => $config['imports']], 2) . chr(10);
                     unset($config['imports']);
                 }
-                $fileContent .= Yaml::dump($config, 5);
+                $fileContent .= Yaml::dump($config, 6);
                 break;
             case 'php':
             default:
