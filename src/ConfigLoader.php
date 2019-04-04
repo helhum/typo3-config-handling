@@ -38,9 +38,15 @@ class ConfigLoader
      */
     private $isProduction;
 
-    public function __construct(bool $isProduction)
+    /**
+     * @var string
+     */
+    private $alternativeSettingsFile;
+
+    public function __construct(bool $isProduction, string $alternativeSettingsFile = null)
     {
         $this->isProduction = $isProduction;
+        $this->alternativeSettingsFile = $alternativeSettingsFile;
     }
 
     public function populate()
@@ -73,7 +79,7 @@ EOF;
 
     public function loadBase(): array
     {
-        $configFile = SettingsFiles::getSettingsFile($this->isProduction);
+        $configFile = $this->alternativeSettingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
 
         return (new Typo3Config($configFile))->readBaseConfig();
     }
@@ -94,7 +100,7 @@ EOF;
 
     private function buildLoader(): ConfigurationLoader
     {
-        $configFile = SettingsFiles::getSettingsFile($this->isProduction);
+        $configFile = $this->alternativeSettingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
 
         return new ConfigurationLoader(
             [

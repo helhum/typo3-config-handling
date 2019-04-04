@@ -65,7 +65,7 @@ class ConfigLoaderTest extends TestCase
      */
     public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
     {
-        $configLoader = new ConfigLoader('/not/existing.yaml');
+        $configLoader = new ConfigLoader(true, '/not/existing.yaml');
         $this->assertArrayHasKey('SYS', $configLoader->load());
     }
 
@@ -75,7 +75,7 @@ class ConfigLoaderTest extends TestCase
     public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/config.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/config.yaml');
         $actualResult = $configLoader->load();
         $this->assertArrayHasKey('SYS', $actualResult);
         $this->assertArrayHasKey('foo', $actualResult);
@@ -88,7 +88,7 @@ class ConfigLoaderTest extends TestCase
     public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/import_default.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/import_default.yaml');
         $actualResult = $configLoader->load();
         $this->assertArrayHasKey('SYS', $actualResult);
         $this->assertArrayHasKey('foo', $actualResult);
@@ -103,7 +103,7 @@ class ConfigLoaderTest extends TestCase
         putenv('FOO=bar');
 
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/placeholders.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/placeholders.yaml');
         $actualResult = $configLoader->load();
 
         $this->assertArrayHasKey('env', $actualResult);
@@ -120,23 +120,10 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function exceptionIsThrownForNotReplacedPlaceHolderInStrictMode()
-    {
-        $this->expectException(InvalidConfigurationFileException::class);
-        $this->expectExceptionCode(1519640359);
-
-        $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/not_existing_placeholder.yaml', true);
-        $configLoader->load();
-    }
-
-    /**
-     * @test
-     */
-    public function invalidPlaceHoldersAreReplacedWithNullNotInStrictMode()
+    public function invalidPlaceHoldersAreReplacedWithNull()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/not_existing_placeholder.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/not_existing_placeholder.yaml');
         $actualResult = $configLoader->load();
 
         $this->assertArrayHasKey('env', $actualResult);
@@ -150,7 +137,7 @@ class ConfigLoaderTest extends TestCase
     public function extensionSettingsAreSerialized()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/extension.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/extension.yaml');
         $actualResult = $configLoader->load();
 
         $this->assertArrayHasKey('EXT', $actualResult);
@@ -163,7 +150,7 @@ class ConfigLoaderTest extends TestCase
     public function customProcessorsAreCalled()
     {
         $root = __DIR__ . '/Fixtures/config';
-        $configLoader = new ConfigLoader($root . '/processors.yaml');
+        $configLoader = new ConfigLoader(true, $root . '/processors.yaml');
         $actualResult = $configLoader->load();
 
         $this->assertArrayHasKey('newKey', $actualResult);

@@ -1,4 +1,3 @@
-EXT:
-    extConf:
-        bar_ext:
-            foo: bar
+EXTENSIONS:
+    bar_ext:
+        foo: bar
