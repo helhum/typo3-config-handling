@@ -1,4 +1,4 @@
-# TYPO3 Config Handling - Extended configuration handling for TYPO3 CMS
+# Extended configuration handling for TYPO3 CMS
 
 ## Installation
 
@@ -64,6 +64,41 @@ SYS:
             className: Helhum\TYPO3\ConfigHandling\Typo3SiteConfiguration
 
 ```
+
+### Encrypting values in configuration files
+Credentials should not be put into version control. To achieve this, it would be possible to put credentials
+either in environment variables or the `overrides.settings.yaml` on the respective systems. This however
+can a tedious process depending on how your target systems are set up. This package comes with a compromise.
+Credentials are encrypted with a strong encryption and then put into version control.
+Then only the encryption key needs to be provided in the target environment once. If this is done
+new encrypted values can be added over time by adding them to version control.
+To encrypt values in a single configuration file, the cli command `typo3cms settings:encrypt -c config/live.yaml`
+can be used. If no encryption key is provided to this command a new encryption key is generated and presented
+in the output.
+This encryption key needs then be put in the `override.settings.yaml` on the target system once:
+```yaml
+SYS:
+    settingsEncryptionKey: def000008a...
+```
+By doing so, all values that follow the syntax `%decrypt(<encryptedString>)%` will be decrypted on the fly and presented as plaintext values to TYPO3.
+
+The `settings:encrypt` cli command looks for configuration values in the following format: `%encrypt(<value to encrypt>)%`
+The values are extracted from such placeholders, encrypted using the given encryption key and replaced with `%decrypt(<encryptedString>)%`
+
+There are some prerequisites to follow if you want to use this feature:
+* The composer package `defuse/php-encryption` needs to be installed in your project.
+* The decryption processor needs to be added to one of your configuration files:
+  ```yaml
+  processors:
+     - class: Helhum\TYPO3\ConfigHandling\Processor\DecryptSettingsProcessor
+  ```
+
+As you can see, the decryption is solely based on a processor, which handles the placeholder. 
+It would therefore be possible to implement your own processor, which fetches credentials from a credential store
+in your target environments. E.g. you could have placeholders like `%encrypt(my-database-password)%` and your
+processor code could look up for the credential in a vault by using the identifier `my-database-password`.
+In future versions, some of these vaults might be supported with this package, or third party packages could just provide
+the sources for support of such credential stores.
 
 ## Migrating your TYPO3 project to use TYPO3 Config Handling
 1. [Install](#install) the package using composer
