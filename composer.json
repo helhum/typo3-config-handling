@@ -3,7 +3,7 @@
     "description" : "Simple but powerful configuration handling for TYPO3 CMS",
     "license": "GPL-2.0-or-later",
     "require": {
-        "php": ">=7.2 <7.3",
+        "php": "^7.2",
         "ext-json": "*",
         "helhum/config-loader": ">=0.9 <0.12",
         "helhum/typo3-console": "^5.5",
@@ -17,8 +17,10 @@
         "composer/composer": "^1.6",
         "mikey179/vfsStream": "^1.6"
     },
+    "version": "1.0.0",
     "suggest": {
-        "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI"
+        "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI",
+        "defuse/php-encryption": "For having the encrypt/decrypt feature of settings"
     },
     "autoload": {
         "psr-4": {
