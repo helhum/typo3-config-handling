@@ -33,7 +33,7 @@ class SettingsFiles
         if (self::$cachedComposerConfig) {
             return self::$cachedComposerConfig;
         }
-        $appRoot = getenv('TYPO3_PATH_APP');
+        $appRoot = getenv('TYPO3_PATH_COMPOSER_ROOT');
         $rootConfig = [
             'settings' => $appRoot . '/config/settings.yaml',
             'dev-settings' => $appRoot . '/config/dev.settings.yaml',
