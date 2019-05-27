@@ -27,6 +27,8 @@ use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
+use Helhum\Typo3Console\Mvc\Cli\Symfony\Input\ArgvInput;
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Service\OpcodeCacheService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -51,7 +53,7 @@ class ConfigLoader
 
     public function populate()
     {
-        $shouldCache = $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
+        $shouldCache = $this->shouldCache();
         $hasCache = $shouldCache ? file_exists($cacheFile = $this->getCacheFile()) : false;
         if ($hasCache) {
             $config = require $cacheFile;
@@ -70,6 +72,22 @@ EOF;
             GeneralUtility::mkdir_deep(dirname($cacheFile));
             GeneralUtility::writeFile($cacheFile, $configString);
         }
+    }
+
+    private function shouldCache(): bool
+    {
+        if (PHP_SAPI !== 'cli') {
+            return $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
+        }
+        if (getenv('TYPO3_CONSOLE_SUB_PROCESS')) {
+            return false;
+        }
+        $shouldCache = $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
+        $input = new ArgvInput();
+        $lowLevelNamespaces = '/(cache|install|upgrade|configuration):/';
+
+
+        return $shouldCache && preg_match($lowLevelNamespaces, $input->getFirstArgument() ?? 'list') === 0;
     }
 
     public function load(): array
