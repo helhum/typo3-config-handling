@@ -59,7 +59,7 @@ class CustomProcessingReader implements ConfigReaderInterface
     {
         $processors = [];
         foreach ($processorsConfig as $processorConfig) {
-            $processors[] = new $processorConfig['class']();
+            $processors[] = new $processorConfig['class']($processorConfig);
         }
 
         return $processors;

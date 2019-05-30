@@ -39,8 +39,15 @@ class ConfigDumper
             case 'yaml':
                 $fileContent .= $this->generateCommentBlock($comment, '#');
                 if (!empty($config['imports'])) {
-                    $fileContent .= Yaml::dump(['imports' => $config['imports']], 2) . chr(10);
+                    $fileContent .= Yaml::dump(['imports' => $config['imports']], 2);
                     unset($config['imports']);
+                    if (empty($config['processors'])) {
+                        $fileContent .= chr(10);
+                    }
+                }
+                if (!empty($config['processors'])) {
+                    $fileContent .= Yaml::dump(['processors' => $config['processors']], 2) . chr(10);
+                    unset($config['processors']);
                 }
                 $fileContent .= Yaml::dump($config, 6);
                 break;

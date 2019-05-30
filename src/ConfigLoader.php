@@ -25,11 +25,8 @@ namespace Helhum\TYPO3\ConfigHandling;
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
-use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use Helhum\Typo3Console\Mvc\Cli\Symfony\Input\ArgvInput;
-use TYPO3\CMS\Core\Cache\CacheManager;
-use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Service\OpcodeCacheService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -85,7 +82,6 @@ EOF;
         $shouldCache = $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
         $input = new ArgvInput();
         $lowLevelNamespaces = '/(cache|install|upgrade|configuration):/';
-
 
         return $shouldCache && preg_match($lowLevelNamespaces, $input->getFirstArgument() ?? 'list') === 0;
     }

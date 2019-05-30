@@ -35,10 +35,14 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Helhum\ConfigLoader\Config;
+use Helhum\ConfigLoader\ConfigurationReaderFactory;
+use Helhum\ConfigLoader\PathDoesNotExistException;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\ConfigExtractor;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
+use Helhum\TYPO3\ConfigHandling\Processor\RemoveSettingsProcessor;
 use Helhum\TYPO3\ConfigHandling\SettingsFiles;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Crypto\Random;
@@ -142,21 +146,6 @@ class ConfigurationManager
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configExtractor = $configExtractor ?: new ConfigExtractor($this->configDumper);
         $this->configCleaner = $configCleaner ?: new ConfigCleaner();
-    }
-
-    private function findRemovedConfigPaths(array $array1, array $array2, array $removedPaths = [], string $path = ''): array
-    {
-        foreach ($array1 as $key => $val) {
-            if (array_key_exists($key, $array2)) {
-                if (is_array($val)) {
-                    $removedPaths = $this->findRemovedConfigPaths($val, $array2[$key], $removedPaths, $path ? "$path/$key" : $key);
-                }
-            } else {
-                $removedPaths[] = $path ? "$path/$key" : $key;
-            }
-        }
-
-        return $removedPaths;
     }
 
     /**
@@ -266,10 +255,13 @@ class ConfigurationManager
      *
      * @param array $configurationToMerge Override configuration array
      */
-    public function updateLocalConfiguration(array $configurationToMerge)
+    public function updateLocalConfiguration(array $configurationToMerge): void
     {
         // We take care exposing the legacy extension config ourselves
         unset($configurationToMerge['EXT']['extConf']);
+        if (empty($configurationToMerge)) {
+            return;
+        }
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         if (!$this->canWriteConfiguration()) {
             throw new \RuntimeException(
@@ -277,9 +269,68 @@ class ConfigurationManager
                 1346323822
             );
         }
+        $removedPaths = $this->findRemovedPaths();
+        foreach ($removedPaths as $removedPath) {
+            try {
+                Config::getValue($configurationToMerge, $removedPath);
+                $addedPaths[] = $removedPath;
+            } catch (PathDoesNotExistException $e) {
+                continue;
+            }
+        }
+        if (!empty($addedPaths)) {
+            $remainingPaths = array_diff($removedPaths, $addedPaths);
+            $this->updateRemovalPaths($remainingPaths);
+        }
+
         if ($this->configExtractor->extractConfig($configurationToMerge, $this->getMergedLocalConfiguration(), $overrideSettingsFile)) {
             $this->configLoader->flushCache();
         }
+    }
+
+    private function findRemovedPaths(): array
+    {
+        $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
+        $factory = new ConfigurationReaderFactory();
+        $overrides = $factory->createReader($overrideSettingsFile)->readConfig();
+        $removedPaths = [];
+        if (isset($overrides['processors'])) {
+            foreach ($overrides['processors'] as $index => $processorConfig) {
+                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
+                    $removedPaths = $processorConfig['paths'];
+                    break;
+                }
+            }
+        }
+
+        return $removedPaths;
+    }
+
+    private function updateRemovalPaths(array $pathsToRemove): void
+    {
+        $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
+        $factory = new ConfigurationReaderFactory();
+        $overrides = $factory->createReader($overrideSettingsFile)->readConfig();
+        $processorPosition = 0;
+        if (isset($overrides['processors'])) {
+            foreach ($overrides['processors'] as $index => $processorConfig) {
+                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
+                    $processorPosition = $index;
+                    break;
+                }
+            }
+        }
+        if (empty($pathsToRemove)) {
+            unset($overrides['processors'][$processorPosition]);
+            if (empty($overrides['processors'])) {
+                unset($overrides['processors']);
+            }
+        } else {
+            $overrides['processors'][$processorPosition]['class'] = RemoveSettingsProcessor::class;
+            $overrides['processors'][$processorPosition]['paths'] = $pathsToRemove;
+            $overrides['processors'][$processorPosition]['internal'] = true;
+        }
+        $this->configDumper->dumpToFile($overrides, $overrideSettingsFile);
     }
 
     /**
@@ -353,19 +404,23 @@ class ConfigurationManager
      * @param array $keys Array with key paths to remove from LocalConfiguration
      * @return bool TRUE if something was removed
      */
-    public function removeLocalConfigurationKeysByPath(array $keys)
+    public function removeLocalConfigurationKeysByPath(array $keys): bool
     {
         $result = false;
         $localConfiguration = $this->getLocalConfiguration();
+        $removedPaths = [];
         foreach ($keys as $path) {
             // Remove key if path is within LocalConfiguration
             if (ArrayUtility::isValidPath($localConfiguration, $path)) {
                 $result = true;
-                $localConfiguration = ArrayUtility::removeByPath($localConfiguration, $path);
+                $pathParts = str_getcsv($path, '/');
+                $removedPaths[] = sprintf('"%s"', implode('"."', $pathParts));
             }
         }
-        if ($result) {
-            $this->writeLocalConfiguration($localConfiguration);
+        if (!empty($removedPaths)) {
+            $alreadyRemovedPaths = $this->findRemovedPaths();
+            $removedPaths = array_unique(array_merge($alreadyRemovedPaths, $removedPaths));
+            $this->updateRemovalPaths($removedPaths);
         }
 
         return $result;
