@@ -292,7 +292,7 @@ class ConfigurationManager
     {
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         $factory = new ConfigurationReaderFactory();
-        $overrides = $factory->createReader($overrideSettingsFile)->readConfig();
+        $overrides = file_exists($overrideSettingsFile) ? $factory->createReader($overrideSettingsFile)->readConfig() : [];
         $removedPaths = [];
         if (isset($overrides['processors'])) {
             foreach ($overrides['processors'] as $index => $processorConfig) {
@@ -310,7 +310,7 @@ class ConfigurationManager
     {
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         $factory = new ConfigurationReaderFactory();
-        $overrides = $factory->createReader($overrideSettingsFile)->readConfig();
+        $overrides = file_exists($overrideSettingsFile) ? $factory->createReader($overrideSettingsFile)->readConfig() : [];
         $processorPosition = 0;
         if (isset($overrides['processors'])) {
             foreach ($overrides['processors'] as $index => $processorConfig) {
