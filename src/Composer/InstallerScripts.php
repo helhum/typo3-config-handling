@@ -35,7 +35,7 @@ class InstallerScripts implements InstallerScriptsRegistration
         self::exposeInstallSettingsFile();
         $scriptDispatcher->addInstallerScript(
             new DumpSettings(),
-            61
+            25
         );
     }
 
