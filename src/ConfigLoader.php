@@ -27,6 +27,7 @@ use Helhum\ConfigLoader\ConfigurationLoader;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use Helhum\Typo3Console\Mvc\Cli\Symfony\Input\ArgvInput;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Service\OpcodeCacheService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -73,7 +74,7 @@ EOF;
 
     private function shouldCache(): bool
     {
-        if (PHP_SAPI !== 'cli') {
+        if (!Environment::isCli()) {
             return $this->isProduction || getenv('TYPO3_CONFIG_HANDLING_CACHE');
         }
         if (getenv('TYPO3_CONSOLE_SUB_PROCESS')) {
