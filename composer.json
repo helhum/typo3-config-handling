@@ -16,7 +16,7 @@
         "phpunit/phpunit": "^6.0",
         "composer/composer": "^1.6",
         "jakub-onderka/php-parallel-lint": "^1.0",
-        "mikey179/vfsStream": "^1.6"
+        "mikey179/vfsstream": "^1.6"
     },
     "conflict": {
         "typo3-console/composer-auto-commands": "< 0.3.0"
