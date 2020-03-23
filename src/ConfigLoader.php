@@ -41,12 +41,12 @@ class ConfigLoader
     /**
      * @var string
      */
-    private $alternativeSettingsFile;
+    private $settingsFile;
 
-    public function __construct(bool $isProduction, string $alternativeSettingsFile = null)
+    public function __construct(bool $isProduction, string $settingsFile = null)
     {
         $this->isProduction = $isProduction;
-        $this->alternativeSettingsFile = $alternativeSettingsFile;
+        $this->settingsFile = $settingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);;
     }
 
     public function populate()
@@ -94,9 +94,7 @@ EOF;
 
     public function loadBase(): array
     {
-        $configFile = $this->alternativeSettingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
-
-        return (new Typo3Config($configFile))->readBaseConfig();
+        return (new Typo3Config($this->settingsFile))->readBaseConfig();
     }
 
     public function flushCache(): void
@@ -104,22 +102,23 @@ EOF;
         if (!$this->isProduction) {
             return;
         }
-        @unlink($this->getCacheFile());
+        $cacheFilePattern = str_replace($this->getCacheIdentifier(), '*', $this->getCacheFile());
+        foreach (glob($cacheFilePattern) as $cacheFile) {
+            @unlink($cacheFile);
+        }
         GeneralUtility::makeInstance(OpcodeCacheService::class)->clearAllActive();
     }
 
     private function getCacheFile(): string
     {
-        return getenv('TYPO3_PATH_APP') . '/var/cache/code/cache_core' . sprintf(CachedConfigurationLoader::CACHE_FILE_PATTERN, $this->getCacheIdentifier());
+        return getenv('TYPO3_PATH_APP') . '/var/cache/code' . sprintf(CachedConfigurationLoader::CACHE_FILE_PATTERN, $this->getCacheIdentifier());
     }
 
     private function buildLoader(): ConfigurationLoader
     {
-        $configFile = $this->alternativeSettingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
-
         return new ConfigurationLoader(
             [
-                new Typo3Config($configFile),
+                new Typo3Config($this->settingsFile),
             ],
             [
                 new PlaceholderValue(false),
@@ -130,6 +129,6 @@ EOF;
 
     private function getCacheIdentifier(): string
     {
-        return 'production';
+        return sha1('production' . filemtime(Environment::getConfigPath()));
     }
 }
