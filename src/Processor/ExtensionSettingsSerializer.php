@@ -25,6 +25,7 @@ namespace Helhum\TYPO3\ConfigHandling\Processor;
 use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\PathDoesNotExistException;
 use Helhum\ConfigLoader\Processor\ConfigProcessorInterface;
+use TYPO3\CMS\Core\DependencyInjection\ContainerBuilder;
 
 class ExtensionSettingsSerializer implements ConfigProcessorInterface
 {
@@ -35,6 +36,10 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
      */
     public function processConfig(array $config): array
     {
+        if (class_exists(ContainerBuilder::class)) {
+            // In TYPO3 v10 we don't need this legacy functionality
+            return $config;
+        }
         try {
             $extensionsSettings = Config::getValue($config, 'EXTENSIONS');
             if (!is_array($extensionsSettings)) {

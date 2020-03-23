@@ -92,6 +92,11 @@ class ConfigurationManager
     private $mainConfig;
 
     /**
+     * @var array
+     */
+    private $defaultConfig;
+
+    /**
      * @var string Path to default TYPO3_CONF_VARS file, relative to the public web folder
      */
     protected $defaultConfigurationFile = 'core/Configuration/DefaultConfiguration.php';
@@ -155,7 +160,13 @@ class ConfigurationManager
      */
     public function getDefaultConfiguration()
     {
-        return require $this->getDefaultConfigurationFileLocation();
+        if (!$this->defaultConfig) {
+            $this->defaultConfig = require $this->getDefaultConfigurationFileLocation();
+            // TYPO3 core expects this value to be set in LocalConfiguration.php (see SilentConfigurationUpgradeService::configureBackendLoginSecurity)
+            unset($this->defaultConfig['BE']['loginSecurityLevel']);
+        }
+
+        return $this->defaultConfig;
     }
 
     /**
