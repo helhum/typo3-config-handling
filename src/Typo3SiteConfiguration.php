@@ -12,6 +12,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3SiteConfiguration extends SiteConfiguration
 {
+    protected $cacheIdentifier = 'sites-configuration';
+
     /**
      * Load plain configuration
      * This method should only be used in case the original configuration as it exists in the file should be loaded,
@@ -50,47 +52,44 @@ class Typo3SiteConfiguration extends SiteConfiguration
         $this->getCache()->remove('pseudo-sites');
     }
 
-    protected function getAllSiteConfigurationFromFiles(): array
+
+    /**
+     * Read the site configuration from config files.
+     *
+     * @param bool $useCache
+     * @return array
+     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
+     */
+    protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
         // Check if the data is already cached
-        if ($siteConfiguration = $this->getCache()->get($this->cacheIdentifier)) {
-            // Due to the nature of PhpFrontend, the `<?php` and `#` wraps have to be removed
-            $siteConfiguration = preg_replace('/^<\?php\s*|\s*#$/', '', $siteConfiguration);
-
-            return json_decode($siteConfiguration, true);
+        $siteConfiguration = $useCache ? $this->getCache()->require($this->cacheIdentifier) : false;
+        if ($siteConfiguration !== false) {
+            return $siteConfiguration;
         }
-
-        // Nothing in the cache (or no site found)
-        if (empty($siteConfiguration)) {
-            $finder = new Finder();
-            try {
-                $finder->files()->depth(0)->name($this->configFileName)->in($this->configPath . '/*');
-            } catch (\InvalidArgumentException $e) {
-                // Directory $this->configPath does not exist yet
-                $finder = [];
-            }
-            $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
-            $siteConfiguration = [];
-            foreach ($finder as $fileInfo) {
-                $configFile = GeneralUtility::fixWindowsFilePath((string)$fileInfo);
-                $identifier = basename($fileInfo->getPath());
-                $reader = $factory->createRootReader($configFile);
-                $placeHolderProcessor = new PlaceholderValue(true);
-                $configuration = $placeHolderProcessor->processConfig(
-                    array_replace_recursive(
-                        $reader->readConfig(),
-                        $GLOBALS['TYPO3_CONF_VARS']['Site'][$identifier] ?? []
-                    )
-                );
-                $siteConfiguration[$identifier] = $configuration;
-            }
-            $this->getCache()->set($this->cacheIdentifier, json_encode($siteConfiguration));
+        $finder = new Finder();
+        try {
+            $finder->files()->depth(0)->name($this->configFileName)->in($this->configPath . '/*');
+        } catch (\InvalidArgumentException $e) {
+            // Directory $this->configPath does not exist yet
+            $finder = [];
         }
-
-        $this->getCache()->set(
-            $this->cacheIdentifier,
-            json_encode($siteConfiguration)
-        );
+        $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
+        $siteConfiguration = [];
+        foreach ($finder as $fileInfo) {
+            $configFile = GeneralUtility::fixWindowsFilePath((string)$fileInfo);
+            $identifier = basename($fileInfo->getPath());
+            $reader = $factory->createRootReader($configFile);
+            $placeHolderProcessor = new PlaceholderValue(true);
+            $configuration = $placeHolderProcessor->processConfig(
+                array_replace_recursive(
+                    $reader->readConfig(),
+                    $GLOBALS['TYPO3_CONF_VARS']['Site'][$identifier] ?? []
+                )
+            );
+            $siteConfiguration[$identifier] = $configuration;
+        }
+        $this->getCache()->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
         return $siteConfiguration;
     }
