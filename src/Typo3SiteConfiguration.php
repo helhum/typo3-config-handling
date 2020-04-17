@@ -64,7 +64,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
     {
         // Check if the data is already cached
         $siteConfiguration = $useCache ? $this->getCache()->require($this->cacheIdentifier) : false;
-        if ($siteConfiguration !== false) {
+        if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
         }
         $finder = new Finder();
