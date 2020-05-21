@@ -53,12 +53,12 @@ class SetupConfigurationAction implements InstallActionInterface
         $this->configDumper = $configDumper ?? new ConfigDumper();
     }
 
-    public function setOutput(ConsoleOutput $output)
+    public function setOutput(ConsoleOutput $output): void
     {
         $this->output = $output;
     }
 
-    public function setCommandDispatcher(CommandDispatcher $commandDispatcher = null)
+    public function setCommandDispatcher(CommandDispatcher $commandDispatcher = null): void
     {
         $this->commandDispatcher = $commandDispatcher;
     }
@@ -72,12 +72,13 @@ class SetupConfigurationAction implements InstallActionInterface
     {
         $this->populateCustomSettings($actionDefinition, $options);
         $this->storeCustomSettingsOverrides($actionDefinition);
+        $this->removeOverrides($actionDefinition);
         $this->copyEnvDistFile();
 
         return true;
     }
 
-    private function populateCustomSettings(array $actionDefinition, array $options)
+    private function populateCustomSettings(array $actionDefinition, array $options): void
     {
         $customSettingsDefinition = $actionDefinition['customSettings'] ?? [];
 
@@ -91,23 +92,38 @@ class SetupConfigurationAction implements InstallActionInterface
         $this->addValuesToOverrides($customConfig);
     }
 
-    private function storeCustomSettingsOverrides(array $actionDefinition)
+    private function storeCustomSettingsOverrides(array $actionDefinition): void
     {
         $customOverrideSettingsFile = $actionDefinition['customOverrideSettings'] ?? '';
-        if (!empty($customOverrideSettingsFile)) {
-            $factory = new ConfigurationReaderFactory(dirname(SettingsFiles::getInstallStepsFile()));
-            $this->addValuesToOverrides($factory->createReader($customOverrideSettingsFile)->readConfig());
+        if (empty($customOverrideSettingsFile)) {
+            return;
         }
+        $factory = new ConfigurationReaderFactory(dirname(SettingsFiles::getInstallStepsFile()));
+        $this->addValuesToOverrides($factory->createReader($customOverrideSettingsFile)->readConfig());
     }
 
-    private function addValuesToOverrides(array $values)
+    private function removeOverrides(array $actionDefinition): void
+    {
+        $removeSettings = $actionDefinition['removeSettings'] ?? [];
+        if (empty($removeSettings)) {
+            return;
+        }
+        $configFile = SettingsFiles::getOverrideSettingsFile();
+        $currentConfig = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile)->readConfig();
+        foreach ($removeSettings as $removeSetting) {
+            $currentConfig = Config::removeValue($currentConfig, $removeSetting);
+        }
+        $this->configDumper->dumpToFile($currentConfig, $configFile);
+    }
+
+    private function addValuesToOverrides(array $values): void
     {
         $configFile = SettingsFiles::getOverrideSettingsFile();
         $currentConfig = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile)->readConfig();
         $this->configDumper->dumpToFile(array_replace_recursive($currentConfig, $values), $configFile);
     }
 
-    private function copyEnvDistFile()
+    private function copyEnvDistFile(): void
     {
         $envFile = getenv('TYPO3_PATH_COMPOSER_ROOT') . '/.env';
         $envDistFile = getenv('TYPO3_PATH_COMPOSER_ROOT') . '/.env.dist';
