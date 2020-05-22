@@ -25,6 +25,7 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
+use TYPO3\CMS\Core\DependencyInjection\ContainerBuilder;
 
 class ConfigLoaderTest extends TestCase
 {
@@ -135,6 +136,9 @@ class ConfigLoaderTest extends TestCase
      */
     public function extensionSettingsAreSerialized()
     {
+        if (class_exists(ContainerBuilder::class)) {
+            self::markTestSkipped('Functionality disabled for TYPO3 10.4');
+        }
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader(true, $root . '/extension.yaml');
         $actualResult = $configLoader->load();
