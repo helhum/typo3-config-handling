@@ -108,9 +108,15 @@ class SetupConfigurationAction implements InstallActionInterface
         if (empty($removeSettings)) {
             return;
         }
+        if (is_string($removeSettings)) {
+            $removeSettings = explode(',', $removeSettings);
+        }
         $configFile = SettingsFiles::getOverrideSettingsFile();
         $currentConfig = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile)->readConfig();
         foreach ($removeSettings as $removeSetting) {
+            if (empty($removeSetting)) {
+                continue;
+            }
             $currentConfig = Config::removeValue($currentConfig, $removeSetting);
         }
         $this->configDumper->dumpToFile($currentConfig, $configFile);
