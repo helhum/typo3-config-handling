@@ -33,17 +33,18 @@ class SettingsFiles
         if (self::$cachedComposerConfig) {
             return self::$cachedComposerConfig;
         }
-        $appRoot = getenv('TYPO3_PATH_COMPOSER_ROOT');
+        $composerRoot = getenv('TYPO3_PATH_COMPOSER_ROOT');
+        $appRoot = getenv('TYPO3_PATH_APP');
         $rootConfig = [
             'settings' => $appRoot . '/config/settings.yaml',
             'dev-settings' => $appRoot . '/config/dev.settings.yaml',
             'override-settings' => $appRoot . '/config/override.settings.yaml',
             'install-steps' => $appRoot . '/config/setup/install.steps.yaml',
         ];
-        $composerConfig = \json_decode(file_get_contents($appRoot . '/composer.json'), true);
+        $composerConfig = \json_decode(file_get_contents($composerRoot . '/composer.json'), true);
         foreach ($rootConfig as $name => $defaultValue) {
             if (!empty($composerConfig['extra']['helhum/typo3-config-handling'][$name])) {
-                $rootConfig[$name] = $appRoot . '/' . $composerConfig['extra']['helhum/typo3-config-handling'][$name];
+                $rootConfig[$name] = $composerRoot . '/' . $composerConfig['extra']['helhum/typo3-config-handling'][$name];
             }
         }
 
