@@ -80,7 +80,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
             $configFile = GeneralUtility::fixWindowsFilePath((string)$fileInfo);
             $identifier = basename($fileInfo->getPath());
             $reader = $factory->createRootReader($configFile);
-            $placeHolderProcessor = new PlaceholderValue(true);
+            $placeHolderProcessor = new PlaceholderValue(false);
             $configuration = $placeHolderProcessor->processConfig(
                 array_replace_recursive(
                     $reader->readConfig(),
