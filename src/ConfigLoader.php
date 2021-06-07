@@ -111,7 +111,7 @@ EOF;
 
     private function getCacheFile(): string
     {
-        return getenv('TYPO3_PATH_APP') . '/var/cache/code' . sprintf(CachedConfigurationLoader::CACHE_FILE_PATTERN, $this->getCacheIdentifier());
+        return getenv('TYPO3_PATH_APP') . '/var/cache/code/core' . sprintf(CachedConfigurationLoader::CACHE_FILE_PATTERN, $this->getCacheIdentifier());
     }
 
     private function buildLoader(): ConfigurationLoader
