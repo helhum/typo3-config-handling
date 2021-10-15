@@ -48,8 +48,8 @@ class Typo3SiteConfiguration extends SiteConfiguration
         }
         $yamlFileContents = Yaml::dump($configuration, 99);
         GeneralUtility::writeFile($fileName, $yamlFileContents);
-        $this->getCache()->remove($this->cacheIdentifier);
-        $this->getCache()->remove('pseudo-sites');
+        $this->cache->remove($this->cacheIdentifier);
+        $this->cache->remove('pseudo-sites');
     }
 
 
@@ -63,7 +63,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
         // Check if the data is already cached
-        $siteConfiguration = $useCache ? $this->getCache()->require($this->cacheIdentifier) : false;
+        $siteConfiguration = $useCache ? $this->cache->require($this->cacheIdentifier) : false;
         if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
         }
@@ -89,7 +89,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
             );
             $siteConfiguration[$identifier] = $configuration;
         }
-        $this->getCache()->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
+        $this->cache->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
         return $siteConfiguration;
     }
