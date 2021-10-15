@@ -22,6 +22,7 @@ namespace Helhum\TYPO3\ConfigHandling\ConfigReader;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Composer\InstalledVersions;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
 class Typo3BaseConfigReader implements ConfigReaderInterface
@@ -34,7 +35,7 @@ class Typo3BaseConfigReader implements ConfigReaderInterface
     public function __construct(string $configName = 'DefaultConfiguration')
     {
         $configName = preg_replace('/[^a-zA-Z]/', '', $configName);
-        $this->resource = sprintf(getenv('TYPO3_PATH_ROOT') . '/typo3/sysext/core/Configuration/%s.php', $configName);
+        $this->resource = sprintf(InstalledVersions::getInstallPath('typo3/cms-core') . '/Configuration/%s.php', $configName);
     }
 
     public function hasConfig(): bool

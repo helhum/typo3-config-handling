@@ -6,6 +6,7 @@ use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
+use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -48,22 +49,21 @@ class Typo3SiteConfiguration extends SiteConfiguration
         }
         $yamlFileContents = Yaml::dump($configuration, 99);
         GeneralUtility::writeFile($fileName, $yamlFileContents);
-        $this->getCache()->remove($this->cacheIdentifier);
-        $this->getCache()->remove('pseudo-sites');
+        $this->fetchCache()->remove($this->cacheIdentifier);
+        $this->fetchCache()->remove('pseudo-sites');
     }
-
 
     /**
      * Read the site configuration from config files.
      *
      * @param bool $useCache
-     * @return array
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
+     * @return array
      */
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
         // Check if the data is already cached
-        $siteConfiguration = $useCache ? $this->getCache()->require($this->cacheIdentifier) : false;
+        $siteConfiguration = $useCache ? $this->fetchCache()->require($this->cacheIdentifier) : false;
         if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
         }
@@ -89,8 +89,19 @@ class Typo3SiteConfiguration extends SiteConfiguration
             );
             $siteConfiguration[$identifier] = $configuration;
         }
-        $this->getCache()->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
+        $this->fetchCache()->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
         return $siteConfiguration;
+    }
+
+    protected function fetchCache(): PhpFrontend
+    {
+        if (isset($this->cache)) {
+            // TYPO3 11
+            return $this->cache;
+        }
+
+        // TYPO3 10 and lower
+        return $this->getCache();
     }
 }

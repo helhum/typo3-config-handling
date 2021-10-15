@@ -46,7 +46,7 @@ class ConfigLoader
     public function __construct(bool $isProduction, string $settingsFile = null)
     {
         $this->isProduction = $isProduction;
-        $this->settingsFile = $settingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);;
+        $this->settingsFile = $settingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
     }
 
     public function populate()

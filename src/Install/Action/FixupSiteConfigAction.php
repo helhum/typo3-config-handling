@@ -29,7 +29,6 @@ use Symfony\Component\Yaml\Yaml;
 
 class FixupSiteConfigAction implements InstallActionInterface
 {
-
     public function setOutput(ConsoleOutput $output)
     {
         $this->output = $output;

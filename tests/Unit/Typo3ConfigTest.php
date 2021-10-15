@@ -25,10 +25,11 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
 use Helhum\TYPO3\ConfigHandling\Typo3Config;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 
 class Typo3ConfigTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $defaultConfig = [
             'LOG' => [
@@ -57,6 +58,9 @@ class Typo3ConfigTest extends TestCase
         vfsStream::setup('root', null, $structure);
         $root = vfsStream::url('root');
         putenv('TYPO3_PATH_ROOT=' . $root);
+        if (!class_exists(FileNameValidator::class) && !defined('FILE_DENY_PATTERN_DEFAULT')) {
+            define('FILE_DENY_PATTERN_DEFAULT', '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$');
+        }
     }
 
     /**
