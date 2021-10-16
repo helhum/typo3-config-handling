@@ -1,0 +1,35 @@
+imports:
+    - { resource: 'InstallSteps.yaml', type: console }
+
+databaseConnect:
+    arguments:
+        databaseUserName:
+            value: 'root'
+        databaseUserPassword:
+            value: 'root'
+        databaseHostName:
+            value: '127.0.0.1'
+
+databaseSelect:
+    arguments:
+        databaseName:
+            value: 'typo3_test_ci_github'
+
+databaseData:
+    arguments:
+        adminUserName:
+            value: 'admin'
+        adminPassword:
+            value: 'password'
+        siteName:
+            value: 'TYPO3 Config Handling Distribution'
+
+defaultConfiguration:
+    arguments:
+        siteSetupType:
+            value: 'site'
+
+setupProject:
+    type: Helhum\TYPO3\ConfigHandling\Install\Action\SetupConfigurationAction
+    description: 'Set up project settings'
+    customOverrideSettings: '%env(TYPO3_PATH_COMPOSER_ROOT)%/tests/Functional/Fixtures/install.override.settings.yaml'

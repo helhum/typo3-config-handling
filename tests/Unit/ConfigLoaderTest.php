@@ -22,14 +22,16 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Composer\InstalledVersions;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use TYPO3\CMS\Core\DependencyInjection\ContainerBuilder;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 
 class ConfigLoaderTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $defaultConfig = [
             'LOG' => [
@@ -58,6 +60,9 @@ class ConfigLoaderTest extends TestCase
         vfsStream::setup('root', null, $structure);
         $root = vfsStream::url('root');
         putenv('TYPO3_PATH_ROOT=' . $root);
+        if (!class_exists(FileNameValidator::class) && !defined('FILE_DENY_PATTERN_DEFAULT')) {
+            define('FILE_DENY_PATTERN_DEFAULT', '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$');
+        }
     }
 
     /**

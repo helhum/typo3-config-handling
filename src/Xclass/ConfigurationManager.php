@@ -35,6 +35,7 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Composer\InstalledVersions;
 use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\PathDoesNotExistException;
@@ -99,12 +100,12 @@ class ConfigurationManager
     /**
      * @var string Path to default TYPO3_CONF_VARS file, relative to the public web folder
      */
-    protected $defaultConfigurationFile = 'core/Configuration/DefaultConfiguration.php';
+    protected $defaultConfigurationFile = '/Configuration/DefaultConfiguration.php';
 
     /**
      * @var string Path to description file for TYPO3_CONF_VARS, relative to the public web folder
      */
-    protected $defaultConfigurationDescriptionFile = 'core/Configuration/DefaultConfigurationDescription.yaml';
+    protected $defaultConfigurationDescriptionFile = 'EXT:core/Configuration/DefaultConfigurationDescription.yaml';
 
     /**
      * @var string Path to local overload TYPO3_CONF_VARS file, relative to the public web folder
@@ -119,7 +120,7 @@ class ConfigurationManager
     /**
      * @var string Path to factory configuration file used during installation as LocalConfiguration boilerplate
      */
-    protected $factoryConfigurationFile = 'core/Configuration/FactoryConfiguration.php';
+    protected $factoryConfigurationFile = '/Configuration/FactoryConfiguration.php';
 
     /**
      * @var string Path to possible additional factory configuration file delivered by packages
@@ -178,7 +179,7 @@ class ConfigurationManager
      */
     public function getDefaultConfigurationFileLocation()
     {
-        return Environment::getFrameworkBasePath() . '/' . $this->defaultConfigurationFile;
+        return InstalledVersions::getInstallPath('typo3/cms-core') . $this->defaultConfigurationFile;
     }
 
     /**
@@ -190,7 +191,7 @@ class ConfigurationManager
      */
     public function getDefaultConfigurationDescriptionFileLocation()
     {
-        return Environment::getFrameworkBasePath() . '/' . $this->defaultConfigurationDescriptionFile;
+        return $this->defaultConfigurationDescriptionFile;
     }
 
     /**
@@ -248,7 +249,7 @@ class ConfigurationManager
      */
     protected function getFactoryConfigurationFileLocation()
     {
-        return Environment::getFrameworkBasePath() . '/' . $this->factoryConfigurationFile;
+        return InstalledVersions::getInstallPath('typo3/cms-core') . $this->factoryConfigurationFile;
     }
 
     /**
@@ -258,7 +259,7 @@ class ConfigurationManager
      */
     protected function getAdditionalFactoryConfigurationFileLocation()
     {
-        return Environment::getPublicPath() . '/' . $this->additionalFactoryConfigurationFile;
+        return Environment::getLegacyConfigPath() . '/' . $this->additionalFactoryConfigurationFile;
     }
 
     /**
@@ -514,9 +515,8 @@ class ConfigurationManager
     public function writeAdditionalConfiguration(array $additionalConfigurationLines)
     {
         return GeneralUtility::writeFile(
-            Environment::getPublicPath() . '/' . $this->additionalConfigurationFile,
-            '<?php' . LF .
-                implode(LF, $additionalConfigurationLines) . LF
+            $this->getAdditionalConfigurationFileLocation(),
+            "<?php\n" . implode("\n", $additionalConfigurationLines) . "\n"
         );
     }
 
@@ -547,6 +547,7 @@ class ConfigurationManager
         }
         $randomKey = GeneralUtility::makeInstance(Random::class)->generateRandomHexString(96);
         $localConfigurationArray['SYS']['encryptionKey'] = $randomKey;
+
         $this->writeLocalConfiguration($localConfigurationArray);
     }
 
@@ -560,7 +561,7 @@ class ConfigurationManager
     {
         // Early return for white listed paths
         foreach ($this->whiteListedLocalConfigurationPaths as $whiteListedPath) {
-            if (GeneralUtility::isFirstPartOfStr($path, $whiteListedPath)) {
+            if (str_starts_with($path, $whiteListedPath)) {
                 return true;
             }
         }

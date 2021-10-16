@@ -1,4 +1,6 @@
-/.Build
-/vendor
 /.php_cs.cache
 /composer.lock
+/config
+/public
+/var
+/vendor
