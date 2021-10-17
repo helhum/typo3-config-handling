@@ -37,11 +37,9 @@ namespace Helhum\TYPO3\ConfigHandling\Xclass;
 
 use Composer\InstalledVersions;
 use Helhum\ConfigLoader\Config;
-use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\PathDoesNotExistException;
 use Helhum\TYPO3\ConfigHandling\ConfigCleaner;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
-use Helhum\TYPO3\ConfigHandling\ConfigExtractor;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
 use Helhum\TYPO3\ConfigHandling\Processor\RemoveSettingsProcessor;
 use Helhum\TYPO3\ConfigHandling\SettingsFiles;
@@ -71,11 +69,6 @@ class ConfigurationManager
      * @var ConfigLoader
      */
     private $configLoader;
-
-    /**
-     * @var ConfigExtractor
-     */
-    private $configExtractor;
 
     /**
      * @var ConfigDumper
@@ -144,13 +137,11 @@ class ConfigurationManager
 
     public function __construct(
         ConfigLoader $configLoader = null,
-        ConfigExtractor $configExtractor = null,
         ConfigDumper $configDumper = null,
         ConfigCleaner $configCleaner = null
     ) {
         $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
         $this->configDumper = $configDumper ?: new ConfigDumper();
-        $this->configExtractor = $configExtractor ?: new ConfigExtractor($this->configDumper);
         $this->configCleaner = $configCleaner ?: new ConfigCleaner();
     }
 
@@ -163,8 +154,6 @@ class ConfigurationManager
     {
         if (!$this->defaultConfig) {
             $this->defaultConfig = require $this->getDefaultConfigurationFileLocation();
-            // TYPO3 core expects this value to be set in LocalConfiguration.php (see SilentConfigurationUpgradeService::configureBackendLoginSecurity)
-            unset($this->defaultConfig['BE']['loginSecurityLevel']);
         }
 
         return $this->defaultConfig;
@@ -201,7 +190,7 @@ class ConfigurationManager
      */
     public function getLocalConfiguration()
     {
-        return $this->configCleaner->cleanConfig($this->getMergedLocalConfiguration(), $this->getDefaultConfiguration());
+        return $this->configLoader->loadOwn();
     }
 
     /**
@@ -294,17 +283,18 @@ class ConfigurationManager
             $remainingPaths = array_diff($removedPaths, $addedPaths);
             $this->updateRemovalPaths($remainingPaths);
         }
-
-        if ($this->configExtractor->extractConfig($configurationToMerge, $this->getMergedLocalConfiguration(), $overrideSettingsFile)) {
-            $this->configLoader->flushCache();
+        $remainingConfigToWrite = $this->configCleaner->cleanConfig(
+            $configurationToMerge,
+            $this->getLocalConfiguration()
+        );
+        if (!empty($remainingConfigToWrite)) {
+            $this->configDumper->dumpToFile(array_replace_recursive($this->configLoader->loadOverrides(), $remainingConfigToWrite), $overrideSettingsFile);
         }
     }
 
     private function findRemovedPaths(): array
     {
-        $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
-        $factory = new ConfigurationReaderFactory();
-        $overrides = file_exists($overrideSettingsFile) ? $factory->createReader($overrideSettingsFile)->readConfig() : [];
+        $overrides = $this->configLoader->loadOverrides();
         $removedPaths = [];
         if (isset($overrides['processors'])) {
             foreach ($overrides['processors'] as $index => $processorConfig) {
@@ -321,8 +311,7 @@ class ConfigurationManager
     private function updateRemovalPaths(array $pathsToRemove): void
     {
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
-        $factory = new ConfigurationReaderFactory();
-        $overrides = file_exists($overrideSettingsFile) ? $factory->createReader($overrideSettingsFile)->readConfig() : [];
+        $overrides = $this->configLoader->loadOverrides();
         $processorPosition = 0;
         if (isset($overrides['processors'])) {
             foreach ($overrides['processors'] as $index => $processorConfig) {
@@ -497,7 +486,7 @@ class ConfigurationManager
      */
     public function writeLocalConfiguration(array $configuration)
     {
-        $configuration = $this->configCleaner->cleanConfig($configuration, $this->getMergedLocalConfiguration());
+        $configuration = $this->configCleaner->cleanConfig($configuration, $this->getLocalConfiguration());
         $this->updateLocalConfiguration($configuration);
 
         // Too many places require this file to exist, so we make sure to create it

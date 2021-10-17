@@ -83,5 +83,5 @@ return PhpCsFixer\Config::create()
         PhpCsFixer\Finder::create()
             ->in(__DIR__)
             ->exclude('vendor')
-            ->exclude('.Build')
+            ->exclude('public')
     );

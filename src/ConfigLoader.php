@@ -24,6 +24,7 @@ namespace Helhum\TYPO3\ConfigHandling;
 
 use Helhum\ConfigLoader\CachedConfigurationLoader;
 use Helhum\ConfigLoader\ConfigurationLoader;
+use Helhum\ConfigLoader\InvalidConfigurationFileException;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Helhum\TYPO3\ConfigHandling\Processor\ExtensionSettingsSerializer;
 use Helhum\Typo3Console\Mvc\Cli\Symfony\Input\ArgvInput;
@@ -87,14 +88,46 @@ EOF;
         return $shouldCache && preg_match($lowLevelNamespaces, $input->getFirstArgument() ?? 'list') === 0;
     }
 
+    /**
+     * Complete config
+     * Cached in production
+     *
+     * @throws InvalidConfigurationFileException
+     * @return array
+     */
     public function load(): array
     {
         return $this->buildLoader()->load();
     }
 
+    /**
+     * Complete config, but without overrides config
+     *
+     * @return array
+     */
     public function loadBase(): array
     {
         return (new Typo3Config($this->settingsFile))->readBaseConfig();
+    }
+
+    /**
+     * Config with overrides file, but without TYPO3 defaults
+     *
+     * @return array
+     */
+    public function loadOwn(): array
+    {
+        return (new Typo3Config($this->settingsFile))->readOwnConfig();
+    }
+
+    /**
+     * Config from overrides file
+     *
+     * @return array
+     */
+    public function loadOverrides(): array
+    {
+        return (new Typo3Config($this->settingsFile))->readOverridesConfig();
     }
 
     public function flushCache(): void
