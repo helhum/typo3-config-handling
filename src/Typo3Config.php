@@ -26,6 +26,7 @@ use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\Reader\CollectionReader;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\CustomProcessingReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3BaseConfigReader;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3DefaultConfigPresenceReader;
@@ -41,6 +42,16 @@ class Typo3Config implements ConfigReaderInterface
      * @var ConfigReaderInterface
      */
     private $reader;
+
+    /**
+     * @var ConfigReaderInterface
+     */
+    private $ownConfigReader;
+
+    /**
+     * @var ConfigReaderInterface
+     */
+    private $overridesReader;
 
     public function __construct(string $configFile, ConfigurationReaderFactory $readerFactory = null)
     {
@@ -61,6 +72,20 @@ class Typo3Config implements ConfigReaderInterface
                 $readerFactory->createRootReader(SettingsFiles::getOverrideSettingsFile())
             )
         );
+        $readerFactory->setReaderFactoryForType(
+            'typo3',
+            function () {
+                return new ArrayReader([]);
+            },
+            false
+        );
+        $this->ownConfigReader = new CustomProcessingReader(
+            new CollectionReader(
+                $readerFactory->createRootReader($configFile),
+                $readerFactory->createRootReader(SettingsFiles::getOverrideSettingsFile())
+            )
+        );
+        $this->overridesReader = $readerFactory->createReader(SettingsFiles::getOverrideSettingsFile());
     }
 
     public function hasConfig(): bool
@@ -68,14 +93,44 @@ class Typo3Config implements ConfigReaderInterface
         return $this->reader->hasConfig();
     }
 
+    /**
+     * Complete config
+     *
+     * @return array
+     */
     public function readConfig(): array
     {
         return $this->reader->readConfig();
     }
 
+    /**
+     * Complete config, but without overrides config
+     *
+     * @return array
+     */
     public function readBaseConfig(): array
     {
         return $this->baseReader->readConfig();
+    }
+
+    /**
+     * Config with overrides file, but without TYPO3 defaults
+     *
+     * @return array
+     */
+    public function readOwnConfig(): array
+    {
+        return $this->ownConfigReader->readConfig();
+    }
+
+    /**
+     * Config of overrides file only
+     *
+     * @return array
+     */
+    public function readOverridesConfig(): array
+    {
+        return $this->overridesReader->hasConfig() ? $this->overridesReader->readConfig() : [];
     }
 
     public function getValue(string $path)

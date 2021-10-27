@@ -97,3 +97,9 @@ jobs:
                 run: |
                     rm -rf var/cache/*
                     vendor/bin/typo3cms site:list | grep my-fancy-host
+
+            -   name: BE Config Test
+                if: ${{ matrix.typo3 != '^9.5.0' }}
+                run: |
+                    rm -rf var/cache/*
+                    vendor/bin/typo3cms configuration:showlocal BE/explicitADmode --json | grep explicitAllow
