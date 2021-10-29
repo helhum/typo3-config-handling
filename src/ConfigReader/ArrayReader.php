@@ -23,6 +23,7 @@ namespace Helhum\TYPO3\ConfigHandling\ConfigReader;
  ***************************************************************/
 
 use Helhum\ConfigLoader\Config;
+use Helhum\ConfigLoader\PathDoesNotExistException;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
 class ArrayReader implements ConfigReaderInterface
@@ -46,12 +47,15 @@ class ArrayReader implements ConfigReaderInterface
     public function hasConfig(): bool
     {
         if ($this->configPath) {
-            $config = Config::getValue($this->config, $this->configPath, []);
-
-            return \is_array($config) && $config !== [];
+            try {
+                Config::getValue($this->config, $this->configPath, []);
+                return true;
+            } catch (PathDoesNotExistException $e) {
+                return false;
+            }
         }
 
-        return $this->config !== [];
+        return true;
     }
 
     public function readConfig(): array
