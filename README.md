@@ -32,7 +32,7 @@ Depending in which environment (on which server) TYPO3 runs, some settings need
 to be changed to match this environment. For example database connection
 settings, paths to external tools like Graphicsmagick or mail delivery settings.
 TYPO3 Config Handling enables you to [distribute your TYPO3 settings over multiple files](#multiple-settings-files)
-and pulling in [configuration values from environment variables](#placeholders).
+and pulling in [configuration values from environment variables, other configuration values, and constants](#placeholders).
 
 ### Configuration files in other formats
 
@@ -150,6 +150,18 @@ credential stores.
 ## Multiple settings files
 
 ## Placeholders
+
+Within the configuration values, various placeholders are supported, namely
+environment variables, other configuration values and PHP constants:
+
+```yaml
+%env(TYPO3_PATH_COMPOSER_ROOT)%
+
+%conf(EXTCONF.filefill.reverseProxyCookie)%
+
+%const(TYPO3\CMS\Core\Log\LogLevel::EMERGENCY)%
+%const(TYPO3_CONTEXT)%
+```
 
 ## Change configuration directory layout
 
