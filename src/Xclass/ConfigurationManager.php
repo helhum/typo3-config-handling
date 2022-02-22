@@ -327,6 +327,12 @@ class ConfigurationManager
                 unset($overrides['processors']);
             }
         } else {
+            // Remove legacy numeric key
+            if (is_int($processorPosition)) {
+                unset($overrides['processors'][$processorPosition]);
+            }
+
+            $processorPosition = 'removeSettingsProcessor';
             $overrides['processors'][$processorPosition]['class'] = RemoveSettingsProcessor::class;
             $overrides['processors'][$processorPosition]['paths'] = $pathsToRemove;
             $overrides['processors'][$processorPosition]['internal'] = true;
