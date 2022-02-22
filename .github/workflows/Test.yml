@@ -35,6 +35,14 @@ jobs:
                     -   php: 8.0
                         typo3: '^11.5.0'
                         dependency-version: stable
+                        experimental: false
+                    -   php: 8.1
+                        typo3: '^11.5.0'
+                        dependency-version: stable
+                        experimental: false
+                    -   php: nightly
+                        typo3: '^11.5.0'
+                        dependency-version: stable
                         experimental: true
 
         continue-on-error: ${{ matrix.experimental }}
@@ -77,6 +85,11 @@ jobs:
 
             -   name: Validate composer.json and composer.lock
                 run: composer validate
+
+            -   name: Reconfigure platform.php
+                if: ${{ matrix.php == 'nightly' }}
+                run: |
+                    composer config platform.php 8.1.99 --no-interaction
 
             -   name: Install
                 run: |
