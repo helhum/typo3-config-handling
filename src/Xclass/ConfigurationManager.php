@@ -289,6 +289,7 @@ class ConfigurationManager
         );
         if (!empty($remainingConfigToWrite)) {
             $this->configDumper->dumpToFile(array_replace_recursive($this->configLoader->loadOverrides(), $remainingConfigToWrite), $overrideSettingsFile);
+            $this->configLoader->flushCache();
         }
     }
 
