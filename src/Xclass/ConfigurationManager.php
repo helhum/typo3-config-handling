@@ -127,7 +127,6 @@ class ConfigurationManager
      * @var array
      */
     protected $whiteListedLocalConfigurationPaths = [
-        'EXT/extConf',
         'EXTCONF',
         'DB',
         'SYS/caching/cacheConfigurations',
@@ -371,6 +370,9 @@ class ConfigurationManager
 
     /**
      * Update a given path in local configuration to a new value.
+     * Warning: TO BE USED ONLY to update a single feature.
+     * NOT TO BE USED within iterations to update multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $path Path to update
      * @param mixed $value Value to set
@@ -431,6 +433,9 @@ class ConfigurationManager
     /**
      * Enables a certain feature and writes the option to LocalConfiguration.php
      * Short-hand method
+     * Warning: TO BE USED ONLY to enable a single feature.
+     * NOT TO BE USED within iterations to enable multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
      * @return bool true on successful writing the setting
@@ -443,6 +448,9 @@ class ConfigurationManager
     /**
      * Disables a feature and writes the option to LocalConfiguration.php
      * Short-hand method
+     * Warning: TO BE USED ONLY to disable a single feature.
+     * NOT TO BE USED within iterations to disable multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
      * @return bool true on successful writing the setting
