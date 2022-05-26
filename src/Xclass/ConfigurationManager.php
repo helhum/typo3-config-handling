@@ -269,7 +269,7 @@ class ConfigurationManager
                 1346323822
             );
         }
-        $removedPaths = $this->findRemovedPaths();
+        $removedPaths = $this->getRemovedPaths();
         foreach ($removedPaths as $removedPath) {
             try {
                 Config::getValue($configurationToMerge, $removedPath);
@@ -292,44 +292,26 @@ class ConfigurationManager
         }
     }
 
-    private function findRemovedPaths(): array
-    {
-        $overrides = $this->configLoader->loadOverrides();
-        $removedPaths = [];
-        if (isset($overrides['processors'])) {
-            foreach ($overrides['processors'] as $index => $processorConfig) {
-                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
-                    $removedPaths = $processorConfig['paths'];
-                    break;
-                }
-            }
-        }
+    private const REMOVE_PROCESSOR_KEY = '_stale_options';
 
-        return $removedPaths;
+    private function getRemovedPaths(): array
+    {
+        return $this->configLoader->loadOverrides()['processors'][self::REMOVE_PROCESSOR_KEY]['paths'] ?? [];
     }
 
     private function updateRemovalPaths(array $pathsToRemove): void
     {
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         $overrides = $this->configLoader->loadOverrides();
-        $processorPosition = 0;
-        if (isset($overrides['processors'])) {
-            foreach ($overrides['processors'] as $index => $processorConfig) {
-                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
-                    $processorPosition = $index;
-                    break;
-                }
-            }
-        }
+        $overrides['processors'][self::REMOVE_PROCESSOR_KEY] = [
+            'class' => RemoveSettingsProcessor::class,
+            'paths' => $pathsToRemove,
+        ];
         if (empty($pathsToRemove)) {
-            unset($overrides['processors'][$processorPosition]);
+            unset($overrides['processors'][self::REMOVE_PROCESSOR_KEY]);
             if (empty($overrides['processors'])) {
                 unset($overrides['processors']);
             }
-        } else {
-            $overrides['processors'][$processorPosition]['class'] = RemoveSettingsProcessor::class;
-            $overrides['processors'][$processorPosition]['paths'] = $pathsToRemove;
-            $overrides['processors'][$processorPosition]['internal'] = true;
         }
         $this->configDumper->dumpToFile($overrides, $overrideSettingsFile);
     }
@@ -422,7 +404,7 @@ class ConfigurationManager
             }
         }
         if (!empty($removedPaths)) {
-            $alreadyRemovedPaths = $this->findRemovedPaths();
+            $alreadyRemovedPaths = $this->getRemovedPaths();
             $removedPaths = array_unique(array_merge($alreadyRemovedPaths, $removedPaths));
             $this->updateRemovalPaths($removedPaths);
         }
