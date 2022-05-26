@@ -2,6 +2,12 @@
     "name": "helhum/typo3-config-handling",
     "description" : "Simple but powerful configuration handling for TYPO3 CMS",
     "license": "GPL-2.0-or-later",
+    "config": {
+        "allow-plugins": {
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        }
+    },
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
