@@ -127,7 +127,6 @@ class ConfigurationManager
      * @var array
      */
     protected $whiteListedLocalConfigurationPaths = [
-        'EXT/extConf',
         'EXTCONF',
         'DB',
         'SYS/caching/cacheConfigurations',
@@ -270,7 +269,7 @@ class ConfigurationManager
                 1346323822
             );
         }
-        $removedPaths = $this->findRemovedPaths();
+        $removedPaths = $this->getRemovedPaths();
         foreach ($removedPaths as $removedPath) {
             try {
                 Config::getValue($configurationToMerge, $removedPath);
@@ -293,44 +292,26 @@ class ConfigurationManager
         }
     }
 
-    private function findRemovedPaths(): array
-    {
-        $overrides = $this->configLoader->loadOverrides();
-        $removedPaths = [];
-        if (isset($overrides['processors'])) {
-            foreach ($overrides['processors'] as $index => $processorConfig) {
-                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
-                    $removedPaths = $processorConfig['paths'];
-                    break;
-                }
-            }
-        }
+    private const REMOVE_PROCESSOR_KEY = '_stale_options';
 
-        return $removedPaths;
+    private function getRemovedPaths(): array
+    {
+        return $this->configLoader->loadOverrides()['processors'][self::REMOVE_PROCESSOR_KEY]['paths'] ?? [];
     }
 
     private function updateRemovalPaths(array $pathsToRemove): void
     {
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         $overrides = $this->configLoader->loadOverrides();
-        $processorPosition = 0;
-        if (isset($overrides['processors'])) {
-            foreach ($overrides['processors'] as $index => $processorConfig) {
-                if (($processorConfig['internal'] ?? false) && $processorConfig['class'] === RemoveSettingsProcessor::class) {
-                    $processorPosition = $index;
-                    break;
-                }
-            }
-        }
+        $overrides['processors'][self::REMOVE_PROCESSOR_KEY] = [
+            'class' => RemoveSettingsProcessor::class,
+            'paths' => $pathsToRemove,
+        ];
         if (empty($pathsToRemove)) {
-            unset($overrides['processors'][$processorPosition]);
+            unset($overrides['processors'][self::REMOVE_PROCESSOR_KEY]);
             if (empty($overrides['processors'])) {
                 unset($overrides['processors']);
             }
-        } else {
-            $overrides['processors'][$processorPosition]['class'] = RemoveSettingsProcessor::class;
-            $overrides['processors'][$processorPosition]['paths'] = $pathsToRemove;
-            $overrides['processors'][$processorPosition]['internal'] = true;
         }
         $this->configDumper->dumpToFile($overrides, $overrideSettingsFile);
     }
@@ -371,6 +352,9 @@ class ConfigurationManager
 
     /**
      * Update a given path in local configuration to a new value.
+     * Warning: TO BE USED ONLY to update a single feature.
+     * NOT TO BE USED within iterations to update multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $path Path to update
      * @param mixed $value Value to set
@@ -420,7 +404,7 @@ class ConfigurationManager
             }
         }
         if (!empty($removedPaths)) {
-            $alreadyRemovedPaths = $this->findRemovedPaths();
+            $alreadyRemovedPaths = $this->getRemovedPaths();
             $removedPaths = array_unique(array_merge($alreadyRemovedPaths, $removedPaths));
             $this->updateRemovalPaths($removedPaths);
         }
@@ -431,6 +415,9 @@ class ConfigurationManager
     /**
      * Enables a certain feature and writes the option to LocalConfiguration.php
      * Short-hand method
+     * Warning: TO BE USED ONLY to enable a single feature.
+     * NOT TO BE USED within iterations to enable multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
      * @return bool true on successful writing the setting
@@ -443,6 +430,9 @@ class ConfigurationManager
     /**
      * Disables a feature and writes the option to LocalConfiguration.php
      * Short-hand method
+     * Warning: TO BE USED ONLY to disable a single feature.
+     * NOT TO BE USED within iterations to disable multiple features.
+     * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
      * @return bool true on successful writing the setting

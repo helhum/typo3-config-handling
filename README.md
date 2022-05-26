@@ -127,7 +127,8 @@ There are some prerequisites to follow if you want to use this feature:
 
   ```yaml
   processors:
-     - class: Helhum\TYPO3\ConfigHandling\Processor\DecryptSettingsProcessor
+      decrypt:
+          class: Helhum\TYPO3\ConfigHandling\Processor\DecryptSettingsProcessor
   ```
 
 As you can see, the decryption is solely based on a processor, which handles the
