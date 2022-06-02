@@ -76,6 +76,9 @@ jobs:
             -   name: Lint
                 run: vendor/bin/parallel-lint --exclude vendor --exclude .Build .
 
+            -   name: PHPStan
+                run: vendor/bin/phpstan analyse --no-progress
+
             -   name: Unit Tests
                 run: vendor/bin/phpunit tests/Unit/
 
