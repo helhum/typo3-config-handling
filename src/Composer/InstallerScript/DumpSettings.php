@@ -56,6 +56,7 @@ class DumpSettings implements InstallerScript
                 );
                 $io->writeError(
                     '<info>TYPO3: Migrated settings from LocalConfiguration.php to config/settings.yaml.</info>',
+                    true,
                     $io::VERBOSE
                 );
             } else {
