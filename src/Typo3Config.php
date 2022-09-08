@@ -69,6 +69,7 @@ class Typo3Config implements ConfigReaderInterface
         $this->reader = new CustomProcessingReader(
             new CollectionReader(
                 $this->baseReader,
+                $readerFactory->createRootReader(SettingsFiles::getEnvironmentSettingsFile()),
                 $readerFactory->createRootReader(SettingsFiles::getOverrideSettingsFile())
             )
         );
@@ -82,6 +83,7 @@ class Typo3Config implements ConfigReaderInterface
         $this->ownConfigReader = new CustomProcessingReader(
             new CollectionReader(
                 $readerFactory->createRootReader($configFile),
+                $readerFactory->createRootReader(SettingsFiles::getEnvironmentSettingsFile()),
                 $readerFactory->createRootReader(SettingsFiles::getOverrideSettingsFile())
             )
         );

@@ -23,6 +23,11 @@ class SettingsFiles
         return self::getComposerConfig()['override-settings'];
     }
 
+    public static function getEnvironmentSettingsFile(): string
+    {
+        return self::getComposerConfig()['environment-settings'];
+    }
+
     public static function getInstallStepsFile(): string
     {
         return self::getComposerConfig()['install-steps'];
@@ -38,6 +43,7 @@ class SettingsFiles
         $rootConfig = [
             'settings' => $appRoot . '/config/settings.yaml',
             'dev-settings' => $appRoot . '/config/dev.settings.yaml',
+            'environment-settings' => $appRoot . '/config/environment.settings.yaml',
             'override-settings' => $appRoot . '/config/override.settings.yaml',
             'install-steps' => $appRoot . '/config/setup/install.steps.yaml',
         ];
