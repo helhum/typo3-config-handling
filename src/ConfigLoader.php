@@ -163,6 +163,6 @@ EOF;
 
     private function getCacheIdentifier(): string
     {
-        return sha1('production' . filemtime(Environment::getConfigPath()));
+        return sha1(Environment::getContext() . filemtime(Environment::getConfigPath()));
     }
 }

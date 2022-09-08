@@ -24,6 +24,7 @@ namespace Helhum\TYPO3\ConfigHandling;
 
 use Helhum\ConfigLoader\Config;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
+use Helhum\ConfigLoader\InvalidArgumentException;
 use Helhum\ConfigLoader\Reader\CollectionReader;
 use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
@@ -58,8 +59,31 @@ class Typo3Config implements ConfigReaderInterface
         $readerFactory = $readerFactory ?? new ConfigurationReaderFactory(dirname($configFile));
         $readerFactory->setReaderFactoryForType(
             'typo3',
-            function (string $resource) {
+            static function (string $resource) {
                 return new Typo3BaseConfigReader($resource);
+            },
+            false
+        );
+        $readerFactory->setReaderFactoryForType(
+            'environment',
+            static function (string $resource, array $options) use ($readerFactory) {
+                $environmentName = $_ENV[$resource] ?? $_SERVER[$resource] ?? getenv($resource);
+                if (!$environmentName) {
+                    return new ArrayReader([]);
+                }
+                if (!isset($options['match'], $options['map'])) {
+                    throw new InvalidArgumentException('match and map needs to be set for this resource', 1661512027);
+                }
+                $configFile = preg_replace($options['match'], $options['map'], $environmentName);
+                if ($configFile === null || $configFile === $environmentName) {
+                    return new ArrayReader([]);
+                }
+                $environmentReader = $readerFactory->createRootReader($configFile);
+                if (($options['require_on_match'] ?? true) && !$environmentReader->hasConfig()) {
+                    throw new InvalidArgumentException(sprintf('Could not import environment resource "%s" with name "%s" from "%s"', $resource, $environmentName, $options['map']), 1661513227);
+                }
+
+                return $environmentReader;
             },
             false
         );
