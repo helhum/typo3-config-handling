@@ -23,6 +23,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      * All read related actions should be performed on the site entity.
      *
      * @param string $siteIdentifier
+     *
      * @return array
      */
     public function load(string $siteIdentifier): array
@@ -39,6 +40,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      *
      * @param string $siteIdentifier
      * @param array $configuration
+     *
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      */
     public function write(string $siteIdentifier, array $configuration): void
@@ -57,7 +59,9 @@ class Typo3SiteConfiguration extends SiteConfiguration
      * Read the site configuration from config files.
      *
      * @param bool $useCache
+     *
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
+     *
      * @return array
      */
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array

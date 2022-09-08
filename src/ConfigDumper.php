@@ -85,6 +85,7 @@ EOF;
      * @param mixed $value
      * @param array $referenceConfig
      * @param array $path
+     *
      * @return string
      */
     public function getPhpCode($value, array $referenceConfig = [], array $path = []): string
@@ -189,6 +190,7 @@ EOF;
 
     /**
      * @param array $typoScript TypoScript configuration array
+     *
      * @return array TypoScript configuration array without dots at the end of all keys
      */
     private function addDotsToTypoScript(array $typoScript): array

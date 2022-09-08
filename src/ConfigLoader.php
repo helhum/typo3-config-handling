@@ -93,6 +93,7 @@ EOF;
      * Cached in production
      *
      * @throws InvalidConfigurationFileException
+     *
      * @return array
      */
     public function load(): array

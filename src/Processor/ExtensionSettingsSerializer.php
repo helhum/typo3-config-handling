@@ -31,7 +31,9 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
 {
     /**
      * @param array $config
+     *
      * @throws \InvalidArgumentException
+     *
      * @return array
      */
     public function processConfig(array $config): array
@@ -59,6 +61,7 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
 
     /**
      * @param array $typoScript TypoScript configuration array
+     *
      * @return array TypoScript configuration array without dots at the end of all keys
      */
     private function addDotsToTypoScript(array $typoScript): array

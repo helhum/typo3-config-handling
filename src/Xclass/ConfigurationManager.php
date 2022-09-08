@@ -61,6 +61,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *   This class is intended for internal core use ONLY.
  *   Extensions should usually use the resulting $GLOBALS['TYPO3_CONF_VARS'] array,
  *   do not try to modify settings in LocalConfiguration.php with an extension.
+ *
  * @internal
  */
 class ConfigurationManager
@@ -163,6 +164,7 @@ class ConfigurationManager
      * currently the path and filename.
      *
      * @return string
+     *
      * @internal
      */
     public function getDefaultConfigurationFileLocation()
@@ -175,6 +177,7 @@ class ConfigurationManager
      * currently the path and filename.
      *
      * @return string
+     *
      * @internal
      */
     public function getDefaultConfigurationDescriptionFileLocation()
@@ -197,6 +200,7 @@ class ConfigurationManager
      * currently the path and filename.
      *
      * @return string
+     *
      * @internal
      */
     public function getLocalConfigurationFileLocation()
@@ -223,6 +227,7 @@ class ConfigurationManager
      * currently the path and filename.
      *
      * @return string
+     *
      * @internal
      */
     public function getAdditionalConfigurationFileLocation()
@@ -320,6 +325,7 @@ class ConfigurationManager
      * Get a value at given path from default configuration
      *
      * @param string $path Path to search for
+     *
      * @return mixed Value at path
      */
     public function getDefaultConfigurationValueByPath($path)
@@ -331,6 +337,7 @@ class ConfigurationManager
      * Get a value at given path from local configuration
      *
      * @param string $path Path to search for
+     *
      * @return mixed Value at path
      */
     public function getLocalConfigurationValueByPath($path)
@@ -343,6 +350,7 @@ class ConfigurationManager
      * merged with local configuration
      *
      * @param string $path Path to search for
+     *
      * @return mixed
      */
     public function getConfigurationValueByPath($path)
@@ -358,6 +366,7 @@ class ConfigurationManager
      *
      * @param string $path Path to update
      * @param mixed $value Value to set
+     *
      * @return bool TRUE on success
      */
     public function setLocalConfigurationValueByPath($path, $value)
@@ -369,6 +378,7 @@ class ConfigurationManager
      * Update / set a list of path and value pairs in local configuration file
      *
      * @param array $pairs Key is path, value is value to set
+     *
      * @return bool TRUE on success
      */
     public function setLocalConfigurationValuesByPathValuePairs(array $pairs)
@@ -388,6 +398,7 @@ class ConfigurationManager
      * Remove keys from LocalConfiguration
      *
      * @param array $keys Array with key paths to remove from LocalConfiguration
+     *
      * @return bool TRUE if something was removed
      */
     public function removeLocalConfigurationKeysByPath(array $keys): bool
@@ -420,6 +431,7 @@ class ConfigurationManager
      * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
+     *
      * @return bool true on successful writing the setting
      */
     public function enableFeature(string $featureName): bool
@@ -435,6 +447,7 @@ class ConfigurationManager
      * To update multiple features use setLocalConfigurationValuesByPathValuePairs().
      *
      * @param string $featureName something like "InlineSvgImages"
+     *
      * @return bool true on successful writing the setting
      */
     public function disableFeature(string $featureName): bool
@@ -446,6 +459,7 @@ class ConfigurationManager
      * Checks if the configuration can be written.
      *
      * @return bool
+     *
      * @internal
      */
     public function canWriteConfiguration()
@@ -459,6 +473,7 @@ class ConfigurationManager
      * Reads the configuration array and exports it to the global variable
      *
      * @internal
+     *
      * @throws \UnexpectedValueException
      */
     public function exportConfiguration()
@@ -471,8 +486,11 @@ class ConfigurationManager
      * Write local configuration array to typo3conf/LocalConfiguration.php
      *
      * @param array $configuration The local configuration to be written
+     *
      * @throws \RuntimeException
+     *
      * @return bool TRUE on success
+     *
      * @internal
      */
     public function writeLocalConfiguration(array $configuration)
@@ -488,8 +506,11 @@ class ConfigurationManager
      * Write additional configuration array to typo3conf/AdditionalConfiguration.php
      *
      * @param array $additionalConfigurationLines The configuration lines to be written
+     *
      * @throws \RuntimeException
+     *
      * @return bool TRUE on success
+     *
      * @internal
      */
     public function writeAdditionalConfiguration(array $additionalConfigurationLines)
@@ -506,6 +527,7 @@ class ConfigurationManager
      * by the install tool in an early step.
      *
      * @throws \RuntimeException
+     *
      * @internal
      */
     public function createLocalConfigurationFromFactoryConfiguration()
@@ -535,6 +557,7 @@ class ConfigurationManager
      * Check if access / write to given path in local configuration is allowed.
      *
      * @param string $path Path to search for
+     *
      * @return bool TRUE if access is allowed
      */
     protected function isValidLocalConfigurationPath($path)

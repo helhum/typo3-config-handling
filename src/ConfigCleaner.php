@@ -32,6 +32,7 @@ class ConfigCleaner
      *
      * @param array $baseConfig
      * @param array[] $referenceConfigs
+     *
      * @return array
      */
     public function cleanConfig(array $baseConfig, array ...$referenceConfigs): array

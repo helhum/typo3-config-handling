@@ -49,6 +49,7 @@ class ArrayReader implements ConfigReaderInterface
         if ($this->configPath) {
             try {
                 Config::getValue($this->config, $this->configPath, []);
+
                 return true;
             } catch (PathDoesNotExistException $e) {
                 return false;

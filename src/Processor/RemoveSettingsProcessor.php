@@ -21,7 +21,9 @@ class RemoveSettingsProcessor implements ConfigProcessorInterface
 
     /**
      * @param array $config
+     *
      * @throws InvalidArgumentException
+     *
      * @return array
      */
     public function processConfig(array $config): array
