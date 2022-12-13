@@ -45,5 +45,12 @@
         "branch-alias": {
             "dev-main": "1.x-dev"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "typo3/cms-composer-installers": true,
+            "typo3/class-alias-loader": true,
+            "helhum/typo3-console-plugin": true
+        }
     }
 }
