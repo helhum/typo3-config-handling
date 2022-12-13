@@ -43,7 +43,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      *
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      */
-    public function write(string $siteIdentifier, array $configuration): void
+    public function write(string $siteIdentifier, array $configuration, bool $protectPlaceholders = false): void
     {
         $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
         if (!file_exists($fileName)) {
