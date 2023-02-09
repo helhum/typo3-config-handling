@@ -133,7 +133,7 @@ EOF;
 
     public function flushCache(): void
     {
-        if (!$this->isProduction) {
+        if (!$this->shouldCache()) {
             return;
         }
         $cacheFilePattern = str_replace($this->getCacheIdentifier(), '*', $this->getCacheFile());
