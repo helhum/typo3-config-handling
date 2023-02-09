@@ -133,7 +133,7 @@ EOF;
 
     public function flushCache(): void
     {
-        if (!$this->isProduction) {
+        if (!$this->isProduction && !getenv('TYPO3_CONFIG_HANDLING_CACHE')) {
             return;
         }
         $cacheFilePattern = str_replace($this->getCacheIdentifier(), '*', $this->getCacheFile());
