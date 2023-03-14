@@ -20,7 +20,7 @@ databaseData:
         adminUserName:
             value: 'admin'
         adminPassword:
-            value: 'password'
+            value: 'Password$1'
         siteName:
             value: 'TYPO3 Config Handling Distribution'
 

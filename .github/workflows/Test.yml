@@ -18,8 +18,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                typo3: [ '^11.5.0' ]
-                php: [ '7.4', '8.0', '8.1', 'nightly' ]
+                typo3: [ '^11.5.0', '^12.2.0' ]
+                php: [ '8.1', '8.2' ]
                 dependency-version: [ lowest, stable ]
                 experimental: [ false ]
 
@@ -64,11 +64,6 @@ jobs:
             -   name: Validate composer.json and composer.lock
                 run: composer validate
 
-            -   name: Reconfigure platform.php
-                if: ${{ matrix.php == 'nightly' }}
-                run: |
-                    composer config platform.php 8.1.99 --no-interaction
-
             -   name: Install
                 run: |
                     composer update --with typo3/cms-core="${{ matrix.typo3 }}" --prefer-${{ matrix.dependency-version }} --prefer-dist --no-interaction
@@ -81,16 +76,15 @@ jobs:
 
             -   name: Install Test
                 run: |
-                    rm -f public/typo3conf/LocalConfiguration.php public/typo3conf/PackageStates.php
-                    TYPO3_CONEXT=Development vendor/bin/typo3cms install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/install.steps.yaml
+                    rm -f public/typo3conf/LocalConfiguration.php config/system/settings.php
+                    TYPO3_CONEXT=Development vendor/bin/typo3 install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/install.steps.yaml
 
             -   name: Site Test
                 run: |
                     rm -rf var/cache/*
-                    vendor/bin/typo3cms site:list | grep my-fancy-host
+                    vendor/bin/typo3 site:list | grep my-fancy-host
 
             -   name: BE Config Test
-                if: ${{ matrix.typo3 != '^9.5.0' }}
                 run: |
                     rm -rf var/cache/*
-                    vendor/bin/typo3cms configuration:showlocal BE/explicitADmode --json | grep explicitAllow
+                    vendor/bin/typo3 configuration:showlocal SYS/sitename --json | grep 'TYPO3 Config Handling Distribution'
