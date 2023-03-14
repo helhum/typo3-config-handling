@@ -6,7 +6,6 @@ use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
-use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -30,9 +29,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
     {
         $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
         $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
-        $reader = $factory->createRootReader($fileName);
-
-        return $reader->readConfig();
+        return $factory->createRootReader($fileName)->readConfig();
     }
 
     /**
@@ -51,8 +48,8 @@ class Typo3SiteConfiguration extends SiteConfiguration
         }
         $yamlFileContents = Yaml::dump($configuration, 99);
         GeneralUtility::writeFile($fileName, $yamlFileContents);
-        $this->fetchCache()->remove($this->cacheIdentifier);
-        $this->fetchCache()->remove('pseudo-sites');
+        $this->cache->remove($this->cacheIdentifier);
+        $this->cache->remove('pseudo-sites');
     }
 
     /**
@@ -67,7 +64,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
         // Check if the data is already cached
-        $siteConfiguration = $useCache ? $this->fetchCache()->require($this->cacheIdentifier) : false;
+        $siteConfiguration = $useCache ? $this->cache->require($this->cacheIdentifier) : false;
         if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
         }
@@ -93,19 +90,8 @@ class Typo3SiteConfiguration extends SiteConfiguration
             );
             $siteConfiguration[$identifier] = $configuration;
         }
-        $this->fetchCache()->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
+        $this->cache->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
         return $siteConfiguration;
-    }
-
-    protected function fetchCache(): PhpFrontend
-    {
-        if (isset($this->cache)) {
-            // TYPO3 11
-            return $this->cache;
-        }
-
-        // TYPO3 10 and lower
-        return $this->getCache();
     }
 }
