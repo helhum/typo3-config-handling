@@ -30,16 +30,16 @@ jobs:
                 run: sudo /etc/init.d/mysql start
 
             -   name: Checkout
-                uses: actions/checkout@v2
+                uses: actions/checkout@v3
 
             -   name: Composer Cache Vars
                 id: composer-cache-vars
                 run: |
-                    echo "::set-output name=dir::$(composer config cache-files-dir)"
-                    echo "::set-output name=timestamp::$(date +"%s")"
+                    echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+                    echo "timestamp=$(date +"%s")" >> $GITHUB_OUTPUT
 
             -   name: Cache Composer dependencies
-                uses: actions/cache@v2
+                uses: actions/cache@v3
                 with:
                     path: ${{ steps.composer-cache-vars.outputs.dir }}
                     key: ${{ runner.os }}-composer-${{ matrix.typo3 }}-${{ matrix.dependency-version }}-${{ matrix.php }}-${{ steps.composer-cache-vars.outputs.timestamp }}
@@ -77,7 +77,7 @@ jobs:
             -   name: Install Test
                 run: |
                     rm -f public/typo3conf/LocalConfiguration.php config/system/settings.php
-                    TYPO3_CONEXT=Development vendor/bin/typo3 install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/install.steps.yaml
+                    TYPO3_CONTEXT=Development vendor/bin/typo3 install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/install.steps.yaml
 
             -   name: Site Test
                 run: |
