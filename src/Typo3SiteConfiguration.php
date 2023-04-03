@@ -12,8 +12,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3SiteConfiguration extends SiteConfiguration
 {
-    protected $cacheIdentifier = 'sites-configuration';
-
     /**
      * Load plain configuration
      * This method should only be used in case the original configuration as it exists in the file should be loaded,
