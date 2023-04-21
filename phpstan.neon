@@ -1,0 +1,9 @@
+parameters:
+	level: max
+	checkMissingIterableValueType: false
+	treatPhpDocTypesAsCertain: false
+
+	paths:
+		- %currentWorkingDirectory%/Configuration/
+		- %currentWorkingDirectory%/src/
+		- %currentWorkingDirectory%/tests/
