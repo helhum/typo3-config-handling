@@ -125,7 +125,8 @@ class SetupConfigurationAction implements InstallActionInterface
     private function addValuesToOverrides(array $values): void
     {
         $configFile = SettingsFiles::getOverrideSettingsFile();
-        $currentConfig = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile)->readConfig();
+        $reader = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile);
+        $currentConfig = $reader->hasConfig() ? $reader->readConfig() : [];
         $this->configDumper->dumpToFile(array_replace_recursive($currentConfig, $values), $configFile);
     }
 
