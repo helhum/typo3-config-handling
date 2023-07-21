@@ -89,7 +89,6 @@ class SetupConfigurationAction implements InstallActionInterface
         foreach ($arguments as $argumentName => $argumentValue) {
             $customConfig = Config::setValue($customConfig, $argumentDefinitions[$argumentName]['configPath'], $argumentValue);
         }
-
         $this->addValuesToOverrides($customConfig);
     }
 
