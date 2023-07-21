@@ -90,10 +90,6 @@ class SetupConfigurationAction implements InstallActionInterface
             $customConfig = Config::setValue($customConfig, $argumentDefinitions[$argumentName]['configPath'], $argumentValue);
         }
 
-//        if (empty($customConfig)) {
-//            return;
-//        }
-
         $this->addValuesToOverrides($customConfig);
     }
 
