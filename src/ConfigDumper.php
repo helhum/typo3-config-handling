@@ -49,7 +49,11 @@ class ConfigDumper
                     $fileContent .= Yaml::dump(['processors' => $config['processors']], 2) . chr(10);
                     unset($config['processors']);
                 }
-                $fileContent .= Yaml::dump($config, 6);
+            
+                if (!empty($config)) {
+                    $fileContent .= Yaml::dump($config, 6);
+                }
+            
                 break;
             case 'php':
             default:
