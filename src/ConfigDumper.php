@@ -49,7 +49,9 @@ class ConfigDumper
                     $fileContent .= Yaml::dump(['processors' => $config['processors']], 2) . chr(10);
                     unset($config['processors']);
                 }
-                $fileContent .= Yaml::dump($config, 6);
+                if ($fileContent === '' || !empty($config)) {
+                    $fileContent .= Yaml::dump($config, 6);
+                }
                 break;
             case 'php':
             default:
@@ -76,7 +78,7 @@ EOF;
             array_map(function ($line) use ($commentChar) {
                 return $commentChar . ' ' . $line;
             }, explode(chr(10), $comment))
-        );
+        ) . chr(10);
     }
 
     /**
