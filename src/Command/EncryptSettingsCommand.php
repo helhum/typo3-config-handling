@@ -42,13 +42,13 @@ class EncryptSettingsCommand extends Command
         return class_exists(Key::class);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         if (!$configFile = $input->getOption('config-file')) {
             $io->error('Please specify a config file');
 
-            return 1;
+            return self::FAILURE;
         }
         $encryptionKey = $input->getOption('encryption-key');
         if (empty($encryptionKey)) {
@@ -56,7 +56,7 @@ class EncryptSettingsCommand extends Command
             if (!$generateKey) {
                 $io->error('No key given, cannot encrypt config file');
 
-                return 1;
+                return self::FAILURE;
             }
             $encryptionKey = Key::createNewRandomKey()->saveToAsciiSafeString();
             $io->warning('Generated new encryption key');
@@ -79,13 +79,13 @@ class EncryptSettingsCommand extends Command
         if ($encryptedConfig === $originalConfig) {
             $io->warning(sprintf('No values found to encrypt in file "%s"', $input->getOption('config-file')));
 
-            return 1;
+            return self::FAILURE;
         }
         $configDumper = new ConfigDumper();
         $configDumper->dumpToFile($encryptedConfig, $configFile);
 
         $io->success(sprintf('Encrypted values in file "%s"', $input->getOption('config-file')));
 
-        return 0;
+        return self::SUCCESS;
     }
 }
