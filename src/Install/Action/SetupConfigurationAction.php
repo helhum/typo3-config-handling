@@ -89,6 +89,9 @@ class SetupConfigurationAction implements InstallActionInterface
         foreach ($arguments as $argumentName => $argumentValue) {
             $customConfig = Config::setValue($customConfig, $argumentDefinitions[$argumentName]['configPath'], $argumentValue);
         }
+        if ($customConfig === []) {
+            return;
+        }
         $this->addValuesToOverrides($customConfig);
     }
 
@@ -127,13 +130,10 @@ class SetupConfigurationAction implements InstallActionInterface
         $configFile = SettingsFiles::getOverrideSettingsFile();
         $reader = (new ConfigurationReaderFactory(dirname($configFile)))->createReader($configFile);
         $currentConfig = $reader->hasConfig() ? $reader->readConfig() : [];
-        $config = array_replace_recursive($currentConfig, $values);
-
-        if(empty($config)) {
-            return;
-        }
-
-        $this->configDumper->dumpToFile($config, $configFile);
+        $this->configDumper->dumpToFile(
+            array_replace_recursive($currentConfig, $values),
+            $configFile
+        );
     }
 
     private function copyEnvDistFile(): void
