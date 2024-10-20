@@ -45,7 +45,7 @@ class DumpSettings implements InstallerScript
         $fileSystem = new Filesystem();
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config');
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/var/cache/code');
-        if ($this->isMajorVersionTwelve($event->getComposer())) {
+        if ($this->isMajorVersionTwelveOrHigher($event->getComposer())) {
             $systemConfigurationFile = getenv('TYPO3_PATH_APP') . '/config/system/settings.php';
             $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config/system');
         } else {
@@ -100,7 +100,7 @@ FILE
         ) > 0;
     }
 
-    private function isMajorVersionTwelve(Composer $composer): bool
+    private function isMajorVersionTwelveOrHigher(Composer $composer): bool
     {
         $repository = $composer->getRepositoryManager()->getLocalRepository();
         $corePackage = $repository->findPackage('typo3/cms-core', '*');
