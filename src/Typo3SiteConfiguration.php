@@ -8,6 +8,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Site\Entity\SiteSettings;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3SiteConfiguration extends SiteConfiguration
@@ -28,6 +29,15 @@ class Typo3SiteConfiguration extends SiteConfiguration
         $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
         $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
         return $factory->createRootReader($fileName)->readConfig();
+    }
+
+    protected function getSiteSettings(string $siteIdentifier, array $siteConfiguration): SiteSettings
+    {
+        $siteSettings = parent::getSiteSettings($siteIdentifier, $siteConfiguration);
+        if (!isset($siteConfiguration['settings'])) {
+            return $siteSettings;
+        }
+        return new SiteSettings(array_replace_recursive($siteSettings->getAll(), $siteConfiguration['settings']));
     }
 
     /**
