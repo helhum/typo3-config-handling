@@ -12,7 +12,7 @@
         "php": ">=8.1",
         "ext-json": "*",
         "helhum/config-loader": ">=0.12.5 <0.13",
-        "helhum/typo3-console": "^8.1.1",
+        "helhum/typo3-console": "^8.1.1 || ^8.2.1",
         "symfony/console": "^5.4 || ^6.4 || ^7.0",
         "symfony/yaml": "^5.4 || ^6.4 || ^7.0",
         "typo3/cms-composer-installers": "^4.0@rc || >=5.0",

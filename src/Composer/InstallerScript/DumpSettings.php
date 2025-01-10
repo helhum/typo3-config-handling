@@ -30,7 +30,6 @@ use Composer\Util\Filesystem;
 use Helhum\TYPO3\ConfigHandling\SettingsFiles;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 
 class DumpSettings implements InstallerScript
 {
