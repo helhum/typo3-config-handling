@@ -139,9 +139,9 @@ class ConfigurationManager
     ];
 
     public function __construct(
-        ConfigLoader $configLoader = null,
-        ConfigDumper $configDumper = null,
-        ConfigCleaner $configCleaner = null
+        ?ConfigLoader $configLoader = null,
+        ?ConfigDumper $configDumper = null,
+        ?ConfigCleaner $configCleaner = null
     ) {
         $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
         $this->configDumper = $configDumper ?: new ConfigDumper();
