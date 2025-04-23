@@ -55,14 +55,13 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *
  * This class handles the access to the files
  * - EXT:core/Configuration/DefaultConfiguration.php (default TYPO3_CONF_VARS)
- * - typo3conf/LocalConfiguration.php (overrides of TYPO3_CONF_VARS)
- * - typo3conf/AdditionalConfiguration.php (optional additional local code blocks)
+ * - config/system/settings.php or typo3conf/system/settings.php - previously known as LocalConfiguration.php
+ * - config/system/additional.php or typo3conf/system/additional.php (optional additional code blocks) - previously known as typo3conf/AdditionalConfiguration.php
  *
  * IMPORTANT:
  *   This class is intended for internal core use ONLY.
  *   Extensions should usually use the resulting $GLOBALS['TYPO3_CONF_VARS'] array,
- *   do not try to modify settings in LocalConfiguration.php with an extension.
- *
+ *   do not try to modify settings in the config/system/settings.php file with an extension.
  * @internal
  */
 class ConfigurationManager
@@ -130,7 +129,7 @@ class ConfigurationManager
      *
      * @var array
      */
-    protected $whiteListedLocalConfigurationPaths = [
+    protected array $allowedSettingsPaths = [
         'EXTCONF',
         'DB',
         'SYS/caching/cacheConfigurations',
@@ -190,7 +189,8 @@ class ConfigurationManager
     }
 
     /**
-     * Return local configuration array typo3conf/LocalConfiguration.php
+     * Return configuration array of typo3conf/system/settings.php or config/system/settings.php, falls back
+     * to typo3conf/LocalConfiguration.php
      *
      * @return array Content array of local configuration file
      */
@@ -466,7 +466,7 @@ class ConfigurationManager
     }
 
     /**
-     * Disables a feature and writes the option to LocalConfiguration.php
+     * Disables a feature and writes the option to system/settings.php
      * Short-hand method
      * Warning: TO BE USED ONLY to disable a single feature.
      * NOT TO BE USED within iterations to disable multiple features.
@@ -509,7 +509,7 @@ class ConfigurationManager
     }
 
     /**
-     * Write local configuration array to typo3conf/LocalConfiguration.php
+     * Write configuration array to %config-dir%/system/settings.php
      *
      * @param array $configuration The local configuration to be written
      *
@@ -529,7 +529,7 @@ class ConfigurationManager
     }
 
     /**
-     * Write additional configuration array to typo3conf/AdditionalConfiguration.php
+     * Write additional configuration array to config/system/additional.php / typo3conf/system/additional.php
      *
      * @param array $additionalConfigurationLines The configuration lines to be written
      *
@@ -549,18 +549,17 @@ class ConfigurationManager
 
     /**
      * Uses FactoryConfiguration file and a possible AdditionalFactoryConfiguration
-     * file in typo3conf to create a basic LocalConfiguration.php. This is used
-     * by the install tool in an early step.
+     * file in typo3conf to create a basic config/system/settings.php. This is used
+     * by the installer in an early step.
      *
      * @throws \RuntimeException
-     *
      * @internal
      */
     public function createLocalConfigurationFromFactoryConfiguration()
     {
         if (file_exists($this->getLocalConfigurationFileLocation())) {
             throw new \RuntimeException(
-                'LocalConfiguration.php exists already',
+                basename($this->getSystemConfigurationFileLocation(true)) . ' already exists',
                 1364836026
             );
         }
@@ -583,14 +582,13 @@ class ConfigurationManager
      * Check if access / write to given path in local configuration is allowed.
      *
      * @param string $path Path to search for
-     *
      * @return bool TRUE if access is allowed
      */
     protected function isValidLocalConfigurationPath($path)
     {
         // Early return for white listed paths
-        foreach ($this->whiteListedLocalConfigurationPaths as $whiteListedPath) {
-            if (str_starts_with($path, $whiteListedPath)) {
+        foreach ($this->allowedSettingsPaths as $allowedSettingsPath) {
+            if (str_starts_with($path, $allowedSettingsPath)) {
                 return true;
             }
         }

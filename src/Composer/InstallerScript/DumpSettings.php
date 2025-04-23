@@ -22,15 +22,11 @@ namespace Helhum\TYPO3\ConfigHandling\Composer\InstallerScript;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Composer\Composer;
-use Composer\Package\Package;
-use Composer\Package\Version\VersionParser;
 use Composer\Script\Event as ScriptEvent;
 use Composer\Util\Filesystem;
 use Helhum\TYPO3\ConfigHandling\SettingsFiles;
 use Helhum\Typo3Console\Mvc\Cli\CommandDispatcher;
 use TYPO3\CMS\Composer\Plugin\Core\InstallerScript;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 
 class DumpSettings implements InstallerScript
 {
@@ -45,13 +41,8 @@ class DumpSettings implements InstallerScript
         $fileSystem = new Filesystem();
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config');
         $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/var/cache/code');
-        if ($this->isMajorVersionTwelve($event->getComposer())) {
-            $systemConfigurationFile = getenv('TYPO3_PATH_APP') . '/config/system/settings.php';
-            $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config/system');
-        } else {
-            $systemConfigurationFile = getenv('TYPO3_PATH_ROOT') . '/typo3conf/LocalConfiguration.php';
-            $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_ROOT') . '/typo3conf/');
-        }
+        $systemConfigurationFile = getenv('TYPO3_PATH_APP') . '/config/system/settings.php';
+        $fileSystem->ensureDirectoryExists(getenv('TYPO3_PATH_APP') . '/config/system');
         $mainSettingsFile = SettingsFiles::getSettingsFile(true);
         if (!$this->allowGeneration($systemConfigurationFile)) {
             if (!file_exists($mainSettingsFile)) {
@@ -98,16 +89,6 @@ return [
 
 FILE
         ) > 0;
-    }
-
-    private function isMajorVersionTwelve(Composer $composer): bool
-    {
-        $repository = $composer->getRepositoryManager()->getLocalRepository();
-        $corePackage = $repository->findPackage('typo3/cms-core', '*');
-        if (!$corePackage instanceof Package) {
-            throw new \UnexpectedValueException('Could not find TYPO3 core package', 1678771451);
-        }
-        return VersionParser::isUpgrade('11.5.999.0', $corePackage->getVersion());
     }
 
     private function allowGeneration(string $file): bool
