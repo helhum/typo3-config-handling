@@ -13,8 +13,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3SiteConfiguration extends SiteConfiguration
 {
-    protected $configFileName = 'config.yaml';
-    protected $cacheIdentifier = 'sites-configuration';
+    protected string $configFileName = 'config.yaml';
+    protected string $cacheIdentifier = 'sites-configuration';
 
     /**
      * Load plain configuration
