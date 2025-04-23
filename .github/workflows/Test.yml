@@ -84,6 +84,11 @@ jobs:
                     rm -rf var/cache/*
                     vendor/bin/typo3 site:list | grep my-fancy-host
 
+            -   name: Disabled test
+                env:
+                    TYPO3_TESTING: '1'
+                run: vendor/bin/typo3 configuration:showactive SYS/sitename | grep -v 'Console site' | grep TYPO3
+
             -   name: BE Config Test
                 run: |
                     rm -rf var/cache/*
