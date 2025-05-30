@@ -29,12 +29,12 @@ use Symfony\Component\Yaml\Yaml;
 
 class FixupSiteConfigAction implements InstallActionInterface
 {
-    public function setOutput(ConsoleOutput $output)
+    public function setOutput(ConsoleOutput $output): void
     {
         $this->output = $output;
     }
 
-    public function setCommandDispatcher(CommandDispatcher $commandDispatcher = null)
+    public function setCommandDispatcher(?CommandDispatcher $commandDispatcher = null): void
     {
         $this->commandDispatcher = $commandDispatcher;
     }

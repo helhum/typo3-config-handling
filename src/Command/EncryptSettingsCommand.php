@@ -37,6 +37,7 @@ class EncryptSettingsCommand extends Command
         ->setDescription('Encrypts values in a given config file');
     }
 
+    #[\Override]
     public function isEnabled(): bool
     {
         return class_exists(Key::class);

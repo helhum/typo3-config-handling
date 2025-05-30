@@ -67,7 +67,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
+    public function notExistingConfigFileReturnsTypo3DefaultConfiguration(): void
     {
         $configLoader = new ConfigLoader(true, '/not/existing.yaml');
         $this->assertArrayHasKey('SYS', $configLoader->load());
@@ -76,7 +76,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
+    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader(true, $root . '/config.yaml');
@@ -89,7 +89,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
+    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader(true, $root . '/import_default.yaml');
@@ -102,7 +102,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function placeHoldersAreReplaced()
+    public function placeHoldersAreReplaced(): void
     {
         putenv('FOO=bar');
 
@@ -124,7 +124,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function invalidPlaceHoldersAreReplacedWithNull()
+    public function invalidPlaceHoldersAreReplacedWithNull(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader(true, $root . '/not_existing_placeholder.yaml');
@@ -138,7 +138,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function extensionSettingsAreSerialized()
+    public function extensionSettingsAreSerialized(): void
     {
         if (class_exists(ContainerBuilder::class)) {
             self::markTestSkipped('Functionality disabled for TYPO3 10.4');
@@ -154,7 +154,7 @@ class ConfigLoaderTest extends TestCase
     /**
      * @test
      */
-    public function customProcessorsAreCalled()
+    public function customProcessorsAreCalled(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $configLoader = new ConfigLoader(true, $root . '/processors.yaml');

@@ -30,7 +30,7 @@ class ArrayReaderTest extends TestCase
     /**
      * @test
      */
-    public function readConfigReturnsGivenArray()
+    public function readConfigReturnsGivenArray(): void
     {
         $input = [
             'foo' => 'bar',
@@ -44,7 +44,7 @@ class ArrayReaderTest extends TestCase
     /**
      * @test
      */
-    public function readConfigThrowsExceptionOnInvalidPath()
+    public function readConfigThrowsExceptionOnInvalidPath(): void
     {
         $this->expectException(\RuntimeException::class);
         $input = [
@@ -58,7 +58,7 @@ class ArrayReaderTest extends TestCase
     /**
      * @test
      */
-    public function readConfigReturnsGivenArrayPath()
+    public function readConfigReturnsGivenArrayPath(): void
     {
         $input = [
             'foo' => [

@@ -9,15 +9,9 @@ use Helhum\ConfigLoader\Processor\ConfigProcessorInterface;
 
 class RemoveSettingsProcessor implements ConfigProcessorInterface
 {
-    /**
-     * @var array
-     */
-    private $options;
-
-    public function __construct(array $options)
-    {
-        $this->options = $options;
-    }
+    public function __construct(
+        private array $options
+    ) {}
 
     /**
      * @param array $config
@@ -31,7 +25,7 @@ class RemoveSettingsProcessor implements ConfigProcessorInterface
         foreach ($this->options['paths'] ?? [] as $path) {
             try {
                 $config = Config::removeValue($config, $path);
-            } catch (PathDoesNotExistException $e) {
+            } catch (PathDoesNotExistException) {
                 // gracefully ignore not existing paths
             }
         }

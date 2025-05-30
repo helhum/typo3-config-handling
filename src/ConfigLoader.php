@@ -34,23 +34,16 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ConfigLoader
 {
-    /**
-     * @var bool
-     */
-    private $isProduction;
+    private readonly string $settingsFile;
 
-    /**
-     * @var string
-     */
-    private $settingsFile;
-
-    public function __construct(bool $isProduction, string $settingsFile = null)
-    {
-        $this->isProduction = $isProduction;
+    public function __construct(
+        private readonly bool $isProduction,
+        ?string $settingsFile = null
+    ) {
         $this->settingsFile = $settingsFile ?? SettingsFiles::getSettingsFile($this->isProduction);
     }
 
-    public function populate()
+    public function populate(): void
     {
         $shouldCache = $this->shouldCache();
         $hasCache = $shouldCache ? file_exists($cacheFile = $this->getCacheFile()) : false;

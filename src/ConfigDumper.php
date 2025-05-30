@@ -75,9 +75,9 @@ EOF;
 
         return implode(
             chr(10),
-            array_map(function ($line) use ($commentChar) {
-                return $commentChar . ' ' . $line;
-            }, explode(chr(10), $comment))
+            array_map(
+                fn(string $line): string => $commentChar . ' ' . $line,
+                explode(chr(10), $comment))
         ) . chr(10);
     }
 
@@ -129,9 +129,9 @@ EOF;
         return $code;
     }
 
-    private function isPlaceHolder($value): bool
+    private function isPlaceHolder(string $value): bool
     {
-        return is_string($value) && preg_match(PlaceholderValue::PLACEHOLDER_PATTERN, $value);
+        return preg_match(PlaceholderValue::PLACEHOLDER_PATTERN, $value);
     }
 
     private function getPhpCodeForPlaceholder(string $value, array $referenceConfig, array $path = [], bool $forKey = false): string
@@ -156,7 +156,7 @@ EOF;
                 $phpCode = $this->getPhpCode($subConfig, $referenceConfig, $path);
                 break;
             case 'global':
-                $globalPath = str_getcsv($placeholderInfo['accessor'], '.');
+                $globalPath = str_getcsv($placeholderInfo['accessor'], '.', escape: '\\');
                 $phpCode = '$GLOBALS[\'' . implode('\'][\'', array_map([$this, 'escapePhpValue'], $globalPath)) . '\']';
                 break;
         }
@@ -172,7 +172,7 @@ EOF;
         return addcslashes($value, '\\\'');
     }
 
-    private function extractPlaceHolder($value, array $types = null): array
+    private function extractPlaceHolder(string $value, ?array $types = null): array
     {
         if (!$this->isPlaceHolder($value)) {
             return [];

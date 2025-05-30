@@ -58,9 +58,7 @@ class ConfigCleaner
 
         return array_filter(
             $cleanedBaseConfig,
-            function ($value) {
-                return !(is_array($value) && empty($value));
-            }
+            fn($value): bool => !(is_array($value) && empty($value))
         );
     }
 

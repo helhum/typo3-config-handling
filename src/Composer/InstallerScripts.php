@@ -30,7 +30,7 @@ use TYPO3\CMS\Composer\Plugin\Core\ScriptDispatcher;
 
 class InstallerScripts implements InstallerScriptsRegistration
 {
-    public static function register(Event $event, ScriptDispatcher $scriptDispatcher)
+    public static function register(Event $event, ScriptDispatcher $scriptDispatcher): void
     {
         self::exposeInstallSettingsFile();
         $scriptDispatcher->addInstallerScript(

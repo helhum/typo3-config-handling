@@ -4,10 +4,7 @@ namespace Helhum\TYPO3\ConfigHandling;
 
 class SettingsFiles
 {
-    /**
-     * @var array
-     */
-    private static $cachedComposerConfig;
+    private static ?array $cachedComposerConfig = null;
 
     public static function getSettingsFile(bool $isProduction): string
     {

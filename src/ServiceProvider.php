@@ -38,15 +38,16 @@ class ServiceProvider extends AbstractServiceProvider
     public function getFactories(): array
     {
         return [
-            ExtractSettingsCommand::class => [ static::class, 'getExtractSettingsCommand' ],
-            EncryptSettingsCommand::class => [ static::class, 'getEncryptSettingsCommand' ],
+            ExtractSettingsCommand::class => static::getExtractSettingsCommand(...),
+            EncryptSettingsCommand::class => static::getEncryptSettingsCommand(...),
         ];
     }
 
+    #[\Override]
     public function getExtensions(): array
     {
         return [
-                CommandRegistry::class => [ static::class, 'configureCommands' ],
+                CommandRegistry::class => static::configureCommands(...),
             ] + parent::getExtensions();
     }
 

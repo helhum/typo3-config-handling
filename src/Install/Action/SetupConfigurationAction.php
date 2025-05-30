@@ -33,22 +33,13 @@ use Helhum\Typo3Console\Mvc\Cli\ConsoleOutput;
 
 class SetupConfigurationAction implements InstallActionInterface
 {
-    /**
-     * @var ConfigDumper
-     */
-    private $configDumper;
+    private readonly ConfigDumper $configDumper;
 
-    /**
-     * @var ConsoleOutput
-     */
-    private $output;
+    private ?ConsoleOutput $output = null;
 
-    /**
-     * @var CommandDispatcher
-     */
-    private $commandDispatcher;
+    private ?CommandDispatcher $commandDispatcher = null;
 
-    public function __construct(ConfigDumper $configDumper = null)
+    public function __construct(?ConfigDumper $configDumper = null)
     {
         $this->configDumper = $configDumper ?? new ConfigDumper();
     }
@@ -58,7 +49,7 @@ class SetupConfigurationAction implements InstallActionInterface
         $this->output = $output;
     }
 
-    public function setCommandDispatcher(CommandDispatcher $commandDispatcher = null): void
+    public function setCommandDispatcher(?CommandDispatcher $commandDispatcher = null): void
     {
         $this->commandDispatcher = $commandDispatcher;
     }

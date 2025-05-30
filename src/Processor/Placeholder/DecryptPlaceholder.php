@@ -9,15 +9,9 @@ use Helhum\ConfigLoader\Processor\Placeholder\PlaceholderInterface;
 
 class DecryptPlaceholder implements PlaceholderInterface
 {
-    /**
-     * @var string
-     */
-    private $secret;
-
-    public function __construct(string $secret)
-    {
-        $this->secret = $secret;
-    }
+    public function __construct(
+        private readonly string $secret
+    ) {}
 
     public function supportedTypes(): array
     {
@@ -33,7 +27,7 @@ class DecryptPlaceholder implements PlaceholderInterface
     {
         try {
             return Key::loadFromAsciiSafeString($this->secret) ? true : false;
-        } catch (CryptoException $e) {
+        } catch (CryptoException) {
             return false;
         }
     }
@@ -42,7 +36,7 @@ class DecryptPlaceholder implements PlaceholderInterface
     {
         try {
             return Crypto::decrypt($accessor, Key::loadFromAsciiSafeString($this->secret));
-        } catch (CryptoException $e) {
+        } catch (CryptoException) {
             return null;
         }
     }

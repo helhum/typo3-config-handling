@@ -8,15 +8,9 @@ use Helhum\ConfigLoader\Processor\Placeholder\PlaceholderInterface;
 
 class EncryptPlaceholder implements PlaceholderInterface
 {
-    /**
-     * @var string
-     */
-    private $secret;
-
-    public function __construct(string $secret)
-    {
-        $this->secret = $secret;
-    }
+    public function __construct(
+        private readonly string $secret
+    ) {}
 
     public function supportedTypes(): array
     {
@@ -33,7 +27,7 @@ class EncryptPlaceholder implements PlaceholderInterface
         return true;
     }
 
-    public function representsValue(string $accessor, array $referenceConfig = [])
+    public function representsValue(string $accessor, array $referenceConfig = []): string
     {
         $key = Key::loadFromAsciiSafeString($this->secret);
 

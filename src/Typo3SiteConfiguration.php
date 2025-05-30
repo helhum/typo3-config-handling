@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Helhum\TYPO3\ConfigHandling;
 
+use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Symfony\Component\Finder\Finder;
@@ -27,6 +28,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      *
      * @return array
      */
+    #[\Override]
     public function load(string $siteIdentifier): array
     {
         $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
@@ -36,7 +38,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
 
     protected function getSiteSettings(string $siteIdentifier, array $siteConfiguration): SiteSettings
     {
-        $siteSettings = parent::getSiteSettings($siteIdentifier, $siteConfiguration);
+        $siteSettings = null;
         if (!isset($siteConfiguration['settings'])) {
             return $siteSettings;
         }
@@ -49,7 +51,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      * @param string $siteIdentifier
      * @param array $configuration
      *
-     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
+     * @throws NoSuchCacheException
      */
     public function write(string $siteIdentifier, array $configuration, bool $protectPlaceholders = false): void
     {
@@ -68,10 +70,11 @@ class Typo3SiteConfiguration extends SiteConfiguration
      *
      * @param bool $useCache
      *
-     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
+     * @throws NoSuchCacheException
      *
      * @return array
      */
+    #[\Override]
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
         // Check if the data is already cached
@@ -82,7 +85,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
         $finder = new Finder();
         try {
             $finder->files()->depth(0)->name($this->configFileName)->in($this->configPath . '/*');
-        } catch (\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException) {
             // Directory $this->configPath does not exist yet
             $finder = [];
         }

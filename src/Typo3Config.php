@@ -34,39 +34,25 @@ use Helhum\TYPO3\ConfigHandling\ConfigReader\Typo3DefaultConfigPresenceReader;
 
 class Typo3Config implements ConfigReaderInterface
 {
-    /**
-     * @var ConfigReaderInterface
-     */
-    private $baseReader;
+    private readonly Typo3DefaultConfigPresenceReader $baseReader;
 
-    /**
-     * @var ConfigReaderInterface
-     */
-    private $reader;
+    private readonly CustomProcessingReader $reader;
 
-    /**
-     * @var ConfigReaderInterface
-     */
-    private $ownConfigReader;
+    private readonly CustomProcessingReader $ownConfigReader;
 
-    /**
-     * @var ConfigReaderInterface
-     */
-    private $overridesReader;
+    private readonly ConfigReaderInterface $overridesReader;
 
-    public function __construct(string $configFile, ConfigurationReaderFactory $readerFactory = null)
+    public function __construct(string $configFile, ?ConfigurationReaderFactory $readerFactory = null)
     {
-        $readerFactory = $readerFactory ?? new ConfigurationReaderFactory(dirname($configFile));
+        $readerFactory ??= new ConfigurationReaderFactory(dirname($configFile));
         $readerFactory->setReaderFactoryForType(
             'typo3',
-            static function (string $resource) {
-                return new Typo3BaseConfigReader($resource);
-            },
+            static fn(string $resource): Typo3BaseConfigReader => new Typo3BaseConfigReader($resource),
             false
         );
         $readerFactory->setReaderFactoryForType(
             'environment',
-            static function (string $resource, array $options) use ($readerFactory) {
+            static function (string $resource, array $options) use ($readerFactory): ArrayReader|ConfigReaderInterface {
                 $environmentName = $_ENV[$resource] ?? $_SERVER[$resource] ?? getenv($resource);
                 if (!$environmentName) {
                     return new ArrayReader([]);
@@ -74,7 +60,7 @@ class Typo3Config implements ConfigReaderInterface
                 if (!isset($options['match'], $options['map'])) {
                     throw new InvalidArgumentException('match and map needs to be set for this resource', 1661512027);
                 }
-                $configFile = preg_replace($options['match'], $options['map'], $environmentName);
+                $configFile = preg_replace($options['match'], (string) $options['map'], $environmentName);
                 if ($configFile === null || $configFile === $environmentName) {
                     return new ArrayReader([]);
                 }
@@ -99,9 +85,7 @@ class Typo3Config implements ConfigReaderInterface
         );
         $readerFactory->setReaderFactoryForType(
             'typo3',
-            function () {
-                return new ArrayReader([]);
-            },
+            fn(): ArrayReader => new ArrayReader([]),
             false
         );
         $this->ownConfigReader = new CustomProcessingReader(

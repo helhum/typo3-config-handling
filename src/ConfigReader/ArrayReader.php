@@ -28,21 +28,10 @@ use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
 class ArrayReader implements ConfigReaderInterface
 {
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * @var string
-     */
-    private $configPath;
-
-    public function __construct(array $config, string $configPath = null)
-    {
-        $this->config = $config;
-        $this->configPath = $configPath;
-    }
+    public function __construct(
+        private readonly array $config,
+        private readonly ?string $configPath = null
+    ) {}
 
     public function hasConfig(): bool
     {
@@ -51,7 +40,7 @@ class ArrayReader implements ConfigReaderInterface
                 Config::getValue($this->config, $this->configPath, []);
 
                 return true;
-            } catch (PathDoesNotExistException $e) {
+            } catch (PathDoesNotExistException) {
                 return false;
             }
         }

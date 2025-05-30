@@ -54,7 +54,7 @@ class ExtensionSettingsSerializer implements ConfigProcessorInterface
             }
 
             return $config;
-        } catch (PathDoesNotExistException $e) {
+        } catch (PathDoesNotExistException) {
             return $config;
         }
     }

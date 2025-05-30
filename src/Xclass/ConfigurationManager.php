@@ -66,20 +66,11 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class ConfigurationManager
 {
-    /**
-     * @var ConfigLoader
-     */
-    private $configLoader;
+    private readonly ConfigLoader $configLoader;
 
-    /**
-     * @var ConfigDumper
-     */
-    private $configDumper;
+    private readonly ConfigDumper $configDumper;
 
-    /**
-     * @var ConfigCleaner
-     */
-    private $configCleaner;
+    private readonly ConfigCleaner $configCleaner;
 
     /**
      * @var array
@@ -142,9 +133,9 @@ class ConfigurationManager
         ?ConfigDumper $configDumper = null,
         ?ConfigCleaner $configCleaner = null
     ) {
-        $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
-        $this->configDumper = $configDumper ?: new ConfigDumper();
-        $this->configCleaner = $configCleaner ?: new ConfigCleaner();
+        $this->configLoader = $configLoader ?? new ConfigLoader(Environment::getContext()->isProduction());
+        $this->configDumper = $configDumper ?? new ConfigDumper();
+        $this->configCleaner = $configCleaner ?? new ConfigCleaner();
         $this->systemConfigurationFileLocation = (new Typo3Version())->getMajorVersion() > 11 ? $this->getSystemConfigurationFileLocation() : $this->getLocalConfigurationFileLocation();
     }
 
@@ -170,7 +161,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function getDefaultConfigurationFileLocation()
+    public function getDefaultConfigurationFileLocation(): string
     {
         return InstalledVersions::getInstallPath('typo3/cms-core') . $this->defaultConfigurationFile;
     }
@@ -194,7 +185,7 @@ class ConfigurationManager
      *
      * @return array Content array of local configuration file
      */
-    public function getLocalConfiguration()
+    public function getLocalConfiguration(): array
     {
         return $this->configLoader->loadOwn();
     }
@@ -207,7 +198,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function getLocalConfigurationFileLocation()
+    public function getLocalConfigurationFileLocation(): string
     {
         return Environment::getLegacyConfigPath() . '/' . $this->localConfigurationFile;
     }
@@ -256,7 +247,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function getAdditionalConfigurationFileLocation()
+    public function getAdditionalConfigurationFileLocation(): string
     {
         return Environment::getLegacyConfigPath() . '/' . $this->additionalConfigurationFile;
     }
@@ -266,7 +257,7 @@ class ConfigurationManager
      *
      * @return string
      */
-    protected function getFactoryConfigurationFileLocation()
+    protected function getFactoryConfigurationFileLocation(): string
     {
         return InstalledVersions::getInstallPath('typo3/cms-core') . $this->factoryConfigurationFile;
     }
@@ -276,7 +267,7 @@ class ConfigurationManager
      *
      * @return string
      */
-    protected function getAdditionalFactoryConfigurationFileLocation()
+    protected function getAdditionalFactoryConfigurationFileLocation(): string
     {
         return Environment::getLegacyConfigPath() . '/' . $this->additionalFactoryConfigurationFile;
     }
@@ -305,7 +296,7 @@ class ConfigurationManager
             try {
                 Config::getValue($configurationToMerge, $removedPath);
                 $addedPaths[] = $removedPath;
-            } catch (PathDoesNotExistException $e) {
+            } catch (PathDoesNotExistException) {
                 continue;
             }
         }
@@ -354,7 +345,7 @@ class ConfigurationManager
      *
      * @return mixed Value at path
      */
-    public function getDefaultConfigurationValueByPath($path)
+    public function getDefaultConfigurationValueByPath(array|string $path): mixed
     {
         return ArrayUtility::getValueByPath($this->getDefaultConfiguration(), $path);
     }
@@ -366,7 +357,7 @@ class ConfigurationManager
      *
      * @return mixed Value at path
      */
-    public function getLocalConfigurationValueByPath($path)
+    public function getLocalConfigurationValueByPath(array|string $path): mixed
     {
         return ArrayUtility::getValueByPath($this->getLocalConfiguration(), $path);
     }
@@ -379,7 +370,7 @@ class ConfigurationManager
      *
      * @return mixed
      */
-    public function getConfigurationValueByPath($path)
+    public function getConfigurationValueByPath(array|string $path): mixed
     {
         return ArrayUtility::getValueByPath($this->getMergedLocalConfiguration(), $path);
     }
@@ -407,7 +398,7 @@ class ConfigurationManager
      *
      * @return bool TRUE on success
      */
-    public function setLocalConfigurationValuesByPathValuePairs(array $pairs)
+    public function setLocalConfigurationValuesByPathValuePairs(array $pairs): bool
     {
         $localConfiguration = [];
         foreach ($pairs as $path => $value) {
@@ -436,7 +427,7 @@ class ConfigurationManager
             // Remove key if path is within LocalConfiguration
             if (ArrayUtility::isValidPath($localConfiguration, $path)) {
                 $result = true;
-                $pathParts = str_getcsv($path, '/');
+                $pathParts = str_getcsv($path, '/', escape: '\\');
                 $removedPaths[] = sprintf('"%s"', implode('"."', $pathParts));
             }
         }
@@ -502,7 +493,7 @@ class ConfigurationManager
      *
      * @throws \UnexpectedValueException
      */
-    public function exportConfiguration()
+    public function exportConfiguration(): void
     {
         $this->configLoader->populate();
         $this->mainConfig = null;
@@ -519,7 +510,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function writeLocalConfiguration(array $configuration)
+    public function writeLocalConfiguration(array $configuration): bool
     {
         $configuration = $this->configCleaner->cleanConfig($configuration, $this->getLocalConfiguration());
         $this->updateLocalConfiguration($configuration);
@@ -539,7 +530,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function writeAdditionalConfiguration(array $additionalConfigurationLines)
+    public function writeAdditionalConfiguration(array $additionalConfigurationLines): bool
     {
         return GeneralUtility::writeFile(
             $this->getAdditionalConfigurationFileLocation(),
@@ -555,7 +546,7 @@ class ConfigurationManager
      * @throws \RuntimeException
      * @internal
      */
-    public function createLocalConfigurationFromFactoryConfiguration()
+    public function createLocalConfigurationFromFactoryConfiguration(): void
     {
         if (file_exists($this->getLocalConfigurationFileLocation())) {
             throw new \RuntimeException(
@@ -588,7 +579,7 @@ class ConfigurationManager
     {
         // Early return for white listed paths
         foreach ($this->allowedSettingsPaths as $allowedSettingsPath) {
-            if (str_starts_with($path, $allowedSettingsPath)) {
+            if (str_starts_with($path, (string) $allowedSettingsPath)) {
                 return true;
             }
         }

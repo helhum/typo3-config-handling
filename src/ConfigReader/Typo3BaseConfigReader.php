@@ -27,10 +27,7 @@ use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
 class Typo3BaseConfigReader implements ConfigReaderInterface
 {
-    /**
-     * @var string
-     */
-    private $resource;
+    private readonly string $resource;
 
     public function __construct(string $configName = 'DefaultConfiguration')
     {

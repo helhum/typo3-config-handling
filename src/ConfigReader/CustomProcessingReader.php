@@ -27,15 +27,9 @@ use Helhum\ConfigLoader\Reader\ConfigReaderInterface;
 
 class CustomProcessingReader implements ConfigReaderInterface
 {
-    /**
-     * @var ConfigReaderInterface
-     */
-    private $baseReader;
-
-    public function __construct(ConfigReaderInterface $baseReader)
-    {
-        $this->baseReader = $baseReader;
-    }
+    public function __construct(
+        private readonly ConfigReaderInterface $baseReader
+    ) {}
 
     public function hasConfig(): bool
     {

@@ -66,7 +66,7 @@ class Typo3ConfigTest extends TestCase
     /**
      * @test
      */
-    public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
+    public function notExistingConfigFileReturnsTypo3DefaultConfiguration(): void
     {
         $typo3Config = new Typo3Config('/not/existing.yaml');
         $this->assertArrayHasKey('SYS', $typo3Config->readConfig());
@@ -75,7 +75,7 @@ class Typo3ConfigTest extends TestCase
     /**
      * @test
      */
-    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
+    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $typo3Config = new Typo3Config($root . '/config.yaml');
@@ -88,7 +88,7 @@ class Typo3ConfigTest extends TestCase
     /**
      * @test
      */
-    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
+    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $typo3Config = new Typo3Config($root . '/import_default.yaml');
@@ -101,7 +101,7 @@ class Typo3ConfigTest extends TestCase
     /**
      * @test
      */
-    public function placeHoldersAreNotReplaced()
+    public function placeHoldersAreNotReplaced(): void
     {
         putenv('FOO=bar');
 
@@ -123,7 +123,7 @@ class Typo3ConfigTest extends TestCase
     /**
      * @test
      */
-    public function customProcessorsAreCalled()
+    public function customProcessorsAreCalled(): void
     {
         $root = __DIR__ . '/Fixtures/config';
         $typo3Config = new Typo3Config($root . '/processors.yaml');
