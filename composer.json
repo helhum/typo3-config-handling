@@ -16,7 +16,7 @@
         "symfony/console": "^5.4 || ^6.4 || ^7.0",
         "symfony/yaml": "^5.4 || ^6.4 || ^7.0",
         "typo3/cms-composer-installers": "^4.0@rc || >=5.0",
-        "typo3/cms-core": "^12.4 || ^13.4",
+        "typo3/cms-core": "^13.4 || ^14.0",
         "composer-runtime-api": "^2.2",
         "symfony/polyfill-php80": "^1.23.1"
     },

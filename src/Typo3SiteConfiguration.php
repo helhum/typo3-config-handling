@@ -6,15 +6,15 @@ use Helhum\ConfigLoader\ConfigurationReaderFactory;
 use Helhum\ConfigLoader\Processor\PlaceholderValue;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
+use TYPO3\CMS\Core\Configuration\Event\SiteConfigurationLoadedEvent;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Site\Entity\SiteSettings;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3SiteConfiguration extends SiteConfiguration
 {
-    protected string $configFileName = 'config.yaml';
-    protected string $cacheIdentifier = 'sites-configuration';
+    private string $configFileName = 'config.yaml';
+    private string $cacheIdentifier = 'sites-configuration';
 
     /**
      * Load plain configuration
@@ -22,10 +22,6 @@ class Typo3SiteConfiguration extends SiteConfiguration
      * for example for writing / editing configuration.
      *
      * All read related actions should be performed on the site entity.
-     *
-     * @param string $siteIdentifier
-     *
-     * @return array
      */
     public function load(string $siteIdentifier): array
     {
@@ -34,20 +30,8 @@ class Typo3SiteConfiguration extends SiteConfiguration
         return $factory->createRootReader($fileName)->readConfig();
     }
 
-    protected function getSiteSettings(string $siteIdentifier, array $siteConfiguration): SiteSettings
-    {
-        $siteSettings = parent::getSiteSettings($siteIdentifier, $siteConfiguration);
-        if (!isset($siteConfiguration['settings'])) {
-            return $siteSettings;
-        }
-        return new SiteSettings(array_replace_recursive($siteSettings->getAll(), $siteConfiguration['settings']));
-    }
-
     /**
      * Add or update a site configuration
-     *
-     * @param string $siteIdentifier
-     * @param array $configuration
      *
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      */
@@ -66,15 +50,10 @@ class Typo3SiteConfiguration extends SiteConfiguration
     /**
      * Read the site configuration from config files.
      *
-     * @param bool $useCache
-     *
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
-     *
-     * @return array
      */
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
-        // Check if the data is already cached
         $siteConfiguration = $useCache ? $this->cache->require($this->cacheIdentifier) : false;
         if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
@@ -83,23 +62,24 @@ class Typo3SiteConfiguration extends SiteConfiguration
         try {
             $finder->files()->depth(0)->name($this->configFileName)->in($this->configPath . '/*');
         } catch (\InvalidArgumentException $e) {
-            // Directory $this->configPath does not exist yet
             $finder = [];
         }
         $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
+        $placeHolderProcessor = new PlaceholderValue(false);
         $siteConfiguration = [];
         foreach ($finder as $fileInfo) {
             $configFile = GeneralUtility::fixWindowsFilePath((string)$fileInfo);
             $identifier = basename($fileInfo->getPath());
             $reader = $factory->createRootReader($configFile);
-            $placeHolderProcessor = new PlaceholderValue(false);
             $configuration = $placeHolderProcessor->processConfig(
                 array_replace_recursive(
                     $reader->readConfig(),
                     $GLOBALS['TYPO3_CONF_VARS']['Site'][$identifier] ?? []
                 )
             );
-            $siteConfiguration[$identifier] = $configuration;
+            $event = new SiteConfigurationLoadedEvent($identifier, $configuration);
+            $this->eventDispatcher->dispatch($event);
+            $siteConfiguration[$identifier] = $event->getConfiguration();
         }
         $this->cache->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
