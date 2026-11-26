@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class EncryptSettingsCommand extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDefinition(
             [

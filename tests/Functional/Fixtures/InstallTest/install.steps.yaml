@@ -32,4 +32,4 @@ defaultConfiguration:
 setupProject:
     type: Helhum\TYPO3\ConfigHandling\Install\Action\SetupConfigurationAction
     description: 'Set up project settings'
-    customOverrideSettings: '%env(TYPO3_PATH_COMPOSER_ROOT)%/tests/Functional/Fixtures/install.override.settings.yaml'
+    customOverrideSettings: '%env(TYPO3_PATH_COMPOSER_ROOT)%/tests/Functional/Fixtures/InstallTest/install.override.settings.php'

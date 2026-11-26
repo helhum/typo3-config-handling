@@ -5,13 +5,12 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
 use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\Processor\RemoveSettingsProcessor;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ConfigDumperTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function dumpingEmptyArrayProducesYamlWithEmptyArray(): void
     {
         vfsStream::setup();
@@ -28,9 +27,7 @@ class ConfigDumperTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function dumpingConfigWithOnlyProcessorConfigDoesProduceValidYaml(): void
     {
         vfsStream::setup();
@@ -56,9 +53,7 @@ class ConfigDumperTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function dumpingConfigWithOnlyImportConfigDoesProduceValidYaml(): void
     {
         vfsStream::setup();
@@ -81,10 +76,8 @@ class ConfigDumperTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
-    public function dumpingConfigWithImportAndProcessorsProduceNiceOutput(): void
+    #[Test]
+    public function dumpingConfigKeepsImportsBeforeProcessors(): void
     {
         vfsStream::setup();
         $root = vfsStream::url('root');
@@ -117,9 +110,7 @@ class ConfigDumperTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function commentBlockIsAddedProperly(): void
     {
         vfsStream::setup();

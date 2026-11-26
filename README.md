@@ -2,6 +2,8 @@
 
 ## Installation
 
+Requires TYPO3 13.4.40+ or 14.3.12+ and PHP 8.2 or newer.
+
 TYPO3 Config Handling does only work for composer enabled (Composer Mode) TYPO3 projects.
 
 1. Run `composer req helhum/typo3-config-handling`
@@ -71,20 +73,31 @@ with some small limitations, that can be overcome by using this package:
    ```yaml
    Site:
         site-identifier:
-            base: 'https://overridden.tld' 
+            base: 'https://overridden.tld'
    ```
 
    With that it is possible to put all environment specific configuration into
    `override.settings.yaml`, without the need to expose some settings in the environment.
 
-To enable this feature, an XCLASS needs to be registered in your main configuration:
+To enable this feature, register the XCLASS for your TYPO3 version in your main
+configuration.
+
+For TYPO3 13, use `Typo3SiteConfigurationV13`:
+
+```yaml
+SYS:
+    Objects:
+        TYPO3\CMS\Core\Configuration\SiteConfiguration:
+            className: Helhum\TYPO3\ConfigHandling\Typo3SiteConfigurationV13
+```
+
+For TYPO3 14, use `Typo3SiteConfiguration`:
 
 ```yaml
 SYS:
     Objects:
         TYPO3\CMS\Core\Configuration\SiteConfiguration:
             className: Helhum\TYPO3\ConfigHandling\Typo3SiteConfiguration
-
 ```
 
 ### Encrypting values in configuration files

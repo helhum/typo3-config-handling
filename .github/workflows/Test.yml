@@ -4,92 +4,107 @@ on:
     push:
         branches:
             - main
-            - /^v?([0-9]+\.){1,2}(x|[0-9]+)-?[a-z]*[1-9]*$/
+            - '[0-9]+.*'
+            - 'v[0-9]+.*'
     pull_request:
         branches:
             - main
 
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
-
-    Tests:
-        name: 'T3 ${{ matrix.typo3 }} - PHP ${{ matrix.php }} - ${{ matrix.dependency-version }}'
-        runs-on: ubuntu-latest
-
+    tests:
+        name: 'TYPO3 ${{ matrix.typo3 }} / PHP ${{ matrix.php }} / ${{ matrix.dependencies }}'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
         strategy:
             fail-fast: false
             matrix:
-                typo3: [ '^13.4.0', '^14.3' ]
-                php: [ '8.2', '8.3', '8.4', '8.5' ]
-                dependency-version: [ lowest, stable ]
-                experimental: [ false ]
-
-        continue-on-error: ${{ matrix.experimental }}
-
-        steps:
-            -   name: Start database server
-                run: sudo /etc/init.d/mysql start
-
-            -   name: Checkout
-                uses: actions/checkout@v4
-
-            -   name: Composer Cache Vars
-                id: composer-cache-vars
-                run: |
-                    echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-                    echo "timestamp=$(date +"%s")" >> $GITHUB_OUTPUT
-
-            -   name: Cache Composer dependencies
-                uses: actions/cache@v4
-                with:
-                    path: ${{ steps.composer-cache-vars.outputs.dir }}
-                    key: ${{ runner.os }}-composer-${{ matrix.typo3 }}-${{ matrix.dependency-version }}-${{ matrix.php }}-${{ steps.composer-cache-vars.outputs.timestamp }}
-                    restore-keys: |
-                        ${{ runner.os }}-composer-${{ matrix.typo3 }}-${{ matrix.dependency-version }}-${{ matrix.php }}-
-                        ${{ runner.os }}-composer-${{ matrix.typo3 }}-${{ matrix.dependency-version }}-
-                        ${{ runner.os }}-composer-${{ matrix.typo3 }}-
-                        ${{ runner.os }}-composer-
-
-            -   name: Set up PHP Version ${{ matrix.php }}
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php }}
-                    tools: composer:v2
-                    coverage: none
-
-            -   name: Environment Check
-                run: |
-                    php --version
-                    composer --version
-
-            -   name: Validate composer.json and composer.lock
-                run: composer validate
-
-            -   name: Install
-                run: |
-                    composer update --with typo3/cms-core="${{ matrix.typo3 }}" --prefer-${{ matrix.dependency-version }} --prefer-dist --no-interaction
-
-            -   name: Lint
-                run: vendor/bin/parallel-lint --exclude vendor --exclude .Build .
-
-            -   name: Unit Tests
-                run: vendor/bin/phpunit tests/Unit/
-
-            -   name: Install Test
-                run: |
-                    rm -f public/typo3conf/LocalConfiguration.php config/system/settings.php
-                    TYPO3_CONTEXT=Development vendor/bin/typo3 install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/install.steps.yaml
-
-            -   name: Site Test
-                run: |
-                    rm -rf var/cache/*
-                    vendor/bin/typo3 site:list | grep my-fancy-host
-
-            -   name: Disabled test
+                typo3: ['^13.4', '^14.3']
+                php: ['8.2', '8.3', '8.4', '8.5']
+                dependencies: [lowest, stable]
+        services:
+            mysql:
+                image: mysql:8.4
                 env:
-                    TYPO3_TESTING: '1'
-                run: vendor/bin/typo3 configuration:showactive SYS/sitename | grep -v 'Console site' | grep TYPO3
+                    MYSQL_ROOT_PASSWORD: root
+                    MYSQL_ROOT_HOST: '%'
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
 
-            -   name: BE Config Test
-                run: |
-                    rm -rf var/cache/*
-                    vendor/bin/typo3 configuration:showlocal SYS/sitename --json | grep 'TYPO3 Config Handling Distribution'
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: intl, mbstring, pdo_mysql, mysqli, xml, zip
+                  ini-values: error_reporting=-1, display_errors=On
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer downloads
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: composer-${{ runner.os }}-${{ matrix.php }}-${{ matrix.typo3 }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
+                  restore-keys: |
+                      composer-${{ runner.os }}-${{ matrix.php }}-${{ matrix.typo3 }}-${{ matrix.dependencies }}-
+                      composer-${{ runner.os }}-
+
+            - name: Validate Composer configuration
+              run: composer validate --strict
+
+            - name: Install dependencies
+              env:
+                  TYPO3_VERSION: ${{ matrix.typo3 }}
+                  DEPENDENCIES: ${{ matrix.dependencies }}
+              run: composer update --with "typo3/cms-core=$TYPO3_VERSION" --prefer-"$DEPENDENCIES" --prefer-dist --no-interaction --no-progress
+
+            - name: Lint PHP
+              run: composer lint
+
+            - name: Unit tests
+              run: composer test:unit
+
+            - name: Integration tests
+              run: composer test:functional
+
+            - name: Install TYPO3
+              env:
+                  TYPO3_CONTEXT: Development
+              run: |
+                  rm -f config/system/settings.php
+                  vendor/bin/typo3 install:setup --no-interaction --skip-integrity-check --install-steps-config tests/Functional/Fixtures/InstallTest/install.steps.yaml
+
+            - name: Verify site overrides
+              run: |
+                  rm -rf var/cache/*
+                  vendor/bin/typo3 site:list | grep -F my-fancy-host
+
+            - name: Verify disabled configuration handling
+              env:
+                  TYPO3_TESTING: '1'
+              run: vendor/bin/typo3 configuration:showactive SYS/sitename | grep -v 'Console site' | grep -F TYPO3
+
+            - name: Verify stored configuration
+              run: |
+                  rm -rf var/cache/*
+                  vendor/bin/typo3 configuration:showlocal SYS/sitename --json | grep -F 'TYPO3 Config Handling Distribution'

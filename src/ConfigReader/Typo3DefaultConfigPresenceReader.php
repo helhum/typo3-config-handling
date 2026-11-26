@@ -45,7 +45,8 @@ class Typo3DefaultConfigPresenceReader implements ConfigReaderInterface
     public function readConfig(): array
     {
         $mainConfig = $this->baseReader->hasConfig() ? $this->baseReader->readConfig() : [];
-        $defaultConfigImported = !empty($mainConfig['SYS']['lang']['format']['priority']);
+        $defaultConfigImported = !empty($mainConfig['LANG']['format']['priority'])
+            || !empty($mainConfig['SYS']['lang']['format']['priority']);
         if (!$defaultConfigImported) {
             $defaultConfigReader = new Typo3BaseConfigReader('DefaultConfiguration');
             $configReaders[] = $defaultConfigReader;

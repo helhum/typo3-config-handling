@@ -1,3 +1,0 @@
-processors:
-    - { class: 'Helhum\TYPO3\ConfigHandling\Tests\Unit\Fixtures\AddKeyProcessor' }
-foo: bar

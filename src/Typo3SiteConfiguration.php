@@ -2,87 +2,43 @@
 declare(strict_types=1);
 namespace Helhum\TYPO3\ConfigHandling;
 
-use Helhum\ConfigLoader\ConfigurationReaderFactory;
-use Helhum\ConfigLoader\Processor\PlaceholderValue;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
-use TYPO3\CMS\Core\Configuration\Event\SiteConfigurationLoadedEvent;
+use Helhum\TYPO3\ConfigHandling\ConfigReader\SiteYamlFileLoader;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
+use TYPO3\CMS\Core\Configuration\Loader\YamlFileLoader;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
-use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Site\Set\SetRegistry;
+use TYPO3\CMS\Core\Site\SiteSettingsFactory;
 
 readonly class Typo3SiteConfiguration extends SiteConfiguration
 {
-    private const configFileName = 'config.yaml';
-    private const cacheIdentifier = 'sites-configuration';
+    use SiteConfigurationTrait;
 
-    /**
-     * Load plain configuration
-     * This method should only be used in case the original configuration as it exists in the file should be loaded,
-     * for example for writing / editing configuration.
-     *
-     * All read related actions should be performed on the site entity.
-     */
-    public function load(string $siteIdentifier): array
-    {
-        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . self::configFileName;
-        $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
-        return $factory->createRootReader($fileName)->readConfig();
-    }
-
-    /**
-     * Add or update a site configuration
-     *
-     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
-     */
-    public function write(string $siteIdentifier, array $configuration, bool $protectPlaceholders = false): void
-    {
-        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . self::configFileName;
-        if (!file_exists($fileName)) {
-            GeneralUtility::mkdir_deep($this->configPath . '/' . $siteIdentifier);
-        }
-        $yamlFileContents = Yaml::dump($configuration, 99);
-        GeneralUtility::writeFile($fileName, $yamlFileContents);
-        $this->cache->remove(self::cacheIdentifier);
-        $this->cache->remove('pseudo-sites');
-    }
-
-    /**
-     * Read the site configuration from config files.
-     *
-     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
-     */
-    protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
-    {
-        $siteConfiguration = $useCache ? $this->cache->require(self::cacheIdentifier) : false;
-        if ($siteConfiguration !== false && $siteConfiguration !== null) {
-            return $siteConfiguration;
-        }
-        $finder = new Finder();
-        try {
-            $finder->files()->depth(0)->name(self::configFileName)->in($this->configPath . '/*');
-        } catch (\InvalidArgumentException $e) {
-            $finder = [];
-        }
-        $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
-        $placeHolderProcessor = new PlaceholderValue(false);
-        $siteConfiguration = [];
-        foreach ($finder as $fileInfo) {
-            $configFile = GeneralUtility::fixWindowsFilePath((string)$fileInfo);
-            $identifier = basename($fileInfo->getPath());
-            $reader = $factory->createRootReader($configFile);
-            $configuration = $placeHolderProcessor->processConfig(
-                array_replace_recursive(
-                    $reader->readConfig(),
-                    $GLOBALS['TYPO3_CONF_VARS']['Site'][$identifier] ?? []
-                )
-            );
-            $event = new SiteConfigurationLoadedEvent($identifier, $configuration);
-            $this->eventDispatcher->dispatch($event);
-            $siteConfiguration[$identifier] = $event->getConfiguration();
-        }
-        $this->cache->set(self::cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
-
-        return $siteConfiguration;
+    public function __construct(
+        #[Autowire('%env(TYPO3:configPath)%/sites')]
+        string $configPath,
+        SiteSettingsFactory $siteSettingsFactory,
+        SetRegistry $setRegistry,
+        EventDispatcherInterface $eventDispatcher,
+        #[Autowire(service: 'cache.core')]
+        PhpFrontend $cache,
+        YamlFileLoader $yamlFileLoader,
+        #[Autowire(service: 'cache.runtime')]
+        FrontendInterface $runtimeCache,
+        LoggerInterface $logger,
+    ) {
+        parent::__construct(
+            $configPath,
+            $siteSettingsFactory,
+            $setRegistry,
+            $eventDispatcher,
+            $cache,
+            new SiteYamlFileLoader($yamlFileLoader),
+            $runtimeCache,
+            $logger,
+        );
     }
 }
