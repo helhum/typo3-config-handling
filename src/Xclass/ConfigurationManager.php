@@ -43,9 +43,9 @@ use Helhum\TYPO3\ConfigHandling\ConfigDumper;
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
 use Helhum\TYPO3\ConfigHandling\Processor\RemoveSettingsProcessor;
 use Helhum\TYPO3\ConfigHandling\SettingsFiles;
+use TYPO3\CMS\Core\Configuration\Exception\SettingsWriteException;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Crypto\Random;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -133,6 +133,7 @@ class ConfigurationManager
         'EXTCONF',
         'DB',
         'SYS/caching/cacheConfigurations',
+        'SYS/encryptionKey',
         'SYS/session',
         'EXTENSIONS',
     ];
@@ -145,7 +146,7 @@ class ConfigurationManager
         $this->configLoader = $configLoader ?: new ConfigLoader(Environment::getContext()->isProduction());
         $this->configDumper = $configDumper ?: new ConfigDumper();
         $this->configCleaner = $configCleaner ?: new ConfigCleaner();
-        $this->systemConfigurationFileLocation = (new Typo3Version())->getMajorVersion() > 11 ? $this->getSystemConfigurationFileLocation() : $this->getLocalConfigurationFileLocation();
+        $this->systemConfigurationFileLocation = $this->getSystemConfigurationFileLocation();
     }
 
     /**
@@ -194,7 +195,7 @@ class ConfigurationManager
      *
      * @return array Content array of local configuration file
      */
-    public function getLocalConfiguration()
+    public function getLocalConfiguration(): array
     {
         return $this->configLoader->loadOwn();
     }
@@ -207,7 +208,7 @@ class ConfigurationManager
      *
      * @internal
      */
-    public function getLocalConfigurationFileLocation()
+    public function getLocalConfigurationFileLocation(): string
     {
         return Environment::getLegacyConfigPath() . '/' . $this->localConfigurationFile;
     }
@@ -258,7 +259,10 @@ class ConfigurationManager
      */
     public function getAdditionalConfigurationFileLocation()
     {
-        return Environment::getLegacyConfigPath() . '/' . $this->additionalConfigurationFile;
+        if (Environment::getProjectPath() !== Environment::getPublicPath()) {
+            return Environment::getConfigPath() . '/system/additional.php';
+        }
+        return Environment::getLegacyConfigPath() . '/system/additional.php';
     }
 
     /**
@@ -295,7 +299,7 @@ class ConfigurationManager
         }
         $overrideSettingsFile = SettingsFiles::getOverrideSettingsFile();
         if (!$this->canWriteConfiguration()) {
-            throw new \RuntimeException(
+            throw new SettingsWriteException(
                 $overrideSettingsFile . ' is not writable.',
                 1346323822
             );
@@ -502,7 +506,7 @@ class ConfigurationManager
      *
      * @throws \UnexpectedValueException
      */
-    public function exportConfiguration()
+    public function exportConfiguration(): void
     {
         $this->configLoader->populate();
         $this->mainConfig = null;
@@ -543,7 +547,8 @@ class ConfigurationManager
     {
         return GeneralUtility::writeFile(
             $this->getAdditionalConfigurationFileLocation(),
-            "<?php\n" . implode("\n", $additionalConfigurationLines) . "\n"
+            "<?php\n" . implode("\n", $additionalConfigurationLines) . "\n",
+            true
         );
     }
 
@@ -584,7 +589,7 @@ class ConfigurationManager
      * @param string $path Path to search for
      * @return bool TRUE if access is allowed
      */
-    protected function isValidLocalConfigurationPath($path)
+    protected function isValidLocalConfigurationPath(string $path): bool
     {
         // Early return for white listed paths
         foreach ($this->allowedSettingsPaths as $allowedSettingsPath) {

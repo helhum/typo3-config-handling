@@ -23,61 +23,22 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
  ***************************************************************/
 
 use Helhum\TYPO3\ConfigHandling\Typo3Config;
-use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 
 class Typo3ConfigTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        $defaultConfig = [
-            'LOG' => [
-                'writer' => 'bla',
-            ],
-            'SYS' => [
-                'lang' => [
-                    'format' => [
-                        'priority' => 'xlf,xml',
-                    ],
-                ],
-            ],
-        ];
-
-        $structure = [
-            'typo3' => [
-                'sysext' => [
-                    'core' => [
-                        'Configuration' => [
-                            'DefaultConfiguration.php' => '<?php return ' . var_export($defaultConfig, true) . ';',
-                        ],
-                    ],
-                ],
-            ],
-        ];
-        vfsStream::setup('root', null, $structure);
-        $root = vfsStream::url('root');
-        putenv('TYPO3_PATH_ROOT=' . $root);
-        if (!class_exists(FileNameValidator::class) && !defined('FILE_DENY_PATTERN_DEFAULT')) {
-            define('FILE_DENY_PATTERN_DEFAULT', '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$');
-        }
-    }
-
-    /**
-     * @test
-     */
-    public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
+    #[Test]
+    public function notExistingConfigFileReturnsTypo3DefaultConfiguration(): void
     {
         $typo3Config = new Typo3Config('/not/existing.yaml');
         $this->assertArrayHasKey('SYS', $typo3Config->readConfig());
     }
 
-    /**
-     * @test
-     */
-    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
+    #[Test]
+    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/Typo3ConfigTest';
         $typo3Config = new Typo3Config($root . '/config.yaml');
         $actualResult = $typo3Config->readConfig();
         $this->assertArrayHasKey('SYS', $actualResult);
@@ -85,12 +46,10 @@ class Typo3ConfigTest extends TestCase
         $this->assertArrayHasKey('LOG', $actualResult);
     }
 
-    /**
-     * @test
-     */
-    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
+    #[Test]
+    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/Typo3ConfigTest';
         $typo3Config = new Typo3Config($root . '/import_default.yaml');
         $actualResult = $typo3Config->readConfig();
         $this->assertArrayHasKey('SYS', $actualResult);
@@ -98,14 +57,12 @@ class Typo3ConfigTest extends TestCase
         $this->assertArrayNotHasKey('LOG', $actualResult);
     }
 
-    /**
-     * @test
-     */
-    public function placeHoldersAreNotReplaced()
+    #[Test]
+    public function placeHoldersAreNotReplaced(): void
     {
         putenv('FOO=bar');
 
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/Typo3ConfigTest';
         $typo3Config = new Typo3Config($root . '/placeholders.yaml');
         $actualResult = $typo3Config->readConfig();
 
@@ -120,12 +77,10 @@ class Typo3ConfigTest extends TestCase
         putenv('FOO');
     }
 
-    /**
-     * @test
-     */
-    public function customProcessorsAreCalled()
+    #[Test]
+    public function customProcessorsAreCalled(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/Typo3ConfigTest';
         $typo3Config = new Typo3Config($root . '/processors.yaml');
         $actualResult = $typo3Config->readConfig();
 

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Helhum\TYPO3\ConfigHandling\Tests\Unit\Fixtures;
+namespace Helhum\TYPO3\ConfigHandling\Tests\Unit\Fixtures\ConfigLoaderTest;
 
 /***************************************************************
  *  Copyright notice

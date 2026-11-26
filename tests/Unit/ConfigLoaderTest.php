@@ -23,62 +23,22 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit;
  ***************************************************************/
 
 use Helhum\TYPO3\ConfigHandling\ConfigLoader;
-use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use TYPO3\CMS\Core\DependencyInjection\ContainerBuilder;
-use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 
 class ConfigLoaderTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        $defaultConfig = [
-            'LOG' => [
-                'writer' => 'bla',
-            ],
-            'SYS' => [
-                'lang' => [
-                    'format' => [
-                        'priority' => 'xlf,xml',
-                    ],
-                ],
-            ],
-        ];
-
-        $structure = [
-            'typo3' => [
-                'sysext' => [
-                    'core' => [
-                        'Configuration' => [
-                            'DefaultConfiguration.php' => '<?php return ' . var_export($defaultConfig, true) . ';',
-                        ],
-                    ],
-                ],
-            ],
-        ];
-        vfsStream::setup('root', null, $structure);
-        $root = vfsStream::url('root');
-        putenv('TYPO3_PATH_ROOT=' . $root);
-        if (!class_exists(FileNameValidator::class) && !defined('FILE_DENY_PATTERN_DEFAULT')) {
-            define('FILE_DENY_PATTERN_DEFAULT', '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$');
-        }
-    }
-
-    /**
-     * @test
-     */
-    public function notExistingConfigFileReturnsTypo3DefaultConfiguration()
+    #[Test]
+    public function notExistingConfigFileReturnsTypo3DefaultConfiguration(): void
     {
         $configLoader = new ConfigLoader(true, '/not/existing.yaml');
         $this->assertArrayHasKey('SYS', $configLoader->load());
     }
 
-    /**
-     * @test
-     */
-    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration()
+    #[Test]
+    public function notImportedTypo3DefaultConfigStillIncludesTypo3DefaultConfiguration(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/config.yaml');
         $actualResult = $configLoader->load();
         $this->assertArrayHasKey('SYS', $actualResult);
@@ -86,12 +46,10 @@ class ConfigLoaderTest extends TestCase
         $this->assertArrayHasKey('LOG', $actualResult);
     }
 
-    /**
-     * @test
-     */
-    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes()
+    #[Test]
+    public function importingTypo3DefaultConfigurationRespectsSpecifiedExcludes(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/import_default.yaml');
         $actualResult = $configLoader->load();
         $this->assertArrayHasKey('SYS', $actualResult);
@@ -99,14 +57,12 @@ class ConfigLoaderTest extends TestCase
         $this->assertArrayNotHasKey('LOG', $actualResult);
     }
 
-    /**
-     * @test
-     */
-    public function placeHoldersAreReplaced()
+    #[Test]
+    public function placeHoldersAreReplaced(): void
     {
         putenv('FOO=bar');
 
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/placeholders.yaml');
         $actualResult = $configLoader->load();
 
@@ -121,12 +77,10 @@ class ConfigLoaderTest extends TestCase
         putenv('FOO');
     }
 
-    /**
-     * @test
-     */
-    public function invalidPlaceHoldersAreReplacedWithNull()
+    #[Test]
+    public function invalidPlaceHoldersAreReplacedWithNull(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/not_existing_placeholder.yaml');
         $actualResult = $configLoader->load();
 
@@ -135,28 +89,21 @@ class ConfigLoaderTest extends TestCase
         $this->assertNull($actualResult['env']);
     }
 
-    /**
-     * @test
-     */
-    public function extensionSettingsAreSerialized()
+    #[Test]
+    public function extensionSettingsArePreserved(): void
     {
-        if (class_exists(ContainerBuilder::class)) {
-            self::markTestSkipped('Functionality disabled for TYPO3 10.4');
-        }
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/extension.yaml');
         $actualResult = $configLoader->load();
 
-        $this->assertArrayHasKey('EXT', $actualResult);
-        $this->assertSame('a:1:{s:3:"foo";s:3:"bar";}', $actualResult['EXT']['extConf']['bar_ext']);
+        $this->assertSame(['foo' => 'bar'], $actualResult['EXTENSIONS']['bar_ext']);
+        $this->assertArrayNotHasKey('extConf', $actualResult['EXT'] ?? []);
     }
 
-    /**
-     * @test
-     */
-    public function customProcessorsAreCalled()
+    #[Test]
+    public function customProcessorsAreCalled(): void
     {
-        $root = __DIR__ . '/Fixtures/config';
+        $root = __DIR__ . '/Fixtures/ConfigLoaderTest';
         $configLoader = new ConfigLoader(true, $root . '/processors.yaml');
         $actualResult = $configLoader->load();
 

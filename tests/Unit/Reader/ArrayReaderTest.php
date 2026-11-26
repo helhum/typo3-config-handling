@@ -23,14 +23,13 @@ namespace Helhum\TYPO3\ConfigHandling\Tests\Unit\Reader;
  ***************************************************************/
 
 use Helhum\TYPO3\ConfigHandling\ConfigReader\ArrayReader;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ArrayReaderTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function readConfigReturnsGivenArray()
+    #[Test]
+    public function readConfigReturnsGivenArray(): void
     {
         $input = [
             'foo' => 'bar',
@@ -41,10 +40,8 @@ class ArrayReaderTest extends TestCase
         $this->assertSame($input, $reader->readConfig());
     }
 
-    /**
-     * @test
-     */
-    public function readConfigThrowsExceptionOnInvalidPath()
+    #[Test]
+    public function readConfigThrowsExceptionOnInvalidPath(): void
     {
         $this->expectException(\RuntimeException::class);
         $input = [
@@ -55,10 +52,8 @@ class ArrayReaderTest extends TestCase
         $reader->readConfig();
     }
 
-    /**
-     * @test
-     */
-    public function readConfigReturnsGivenArrayPath()
+    #[Test]
+    public function readConfigReturnsGivenArrayPath(): void
     {
         $input = [
             'foo' => [

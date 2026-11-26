@@ -1,0 +1,4 @@
+access: success
+env: '%env(FOO)%'
+const: '%const(PHP_EOL)%'
+conf: '%conf(access)%'

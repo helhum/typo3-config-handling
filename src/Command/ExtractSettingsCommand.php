@@ -55,7 +55,7 @@ class ExtractSettingsCommand extends Command
         $this->configExtractor = $configExtractor ?: new ConfigExtractor();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDefinition(
             [

@@ -1,6 +1,6 @@
 {
     "name": "helhum/typo3-config-handling",
-    "description" : "Simple but powerful configuration handling for TYPO3 CMS",
+    "description": "Simple but powerful configuration handling for TYPO3 CMS",
     "license": "GPL-2.0-or-later",
     "config": {
         "allow-plugins": {
@@ -9,26 +9,28 @@
         }
     },
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "ext-json": "*",
-        "helhum/config-loader": ">=0.12.5 <0.13",
-        "helhum/typo3-console": "^8.1.1",
-        "symfony/console": "^5.4 || ^6.4 || ^7.0",
-        "symfony/yaml": "^5.4 || ^6.4 || ^7.0",
-        "typo3/cms-composer-installers": "^4.0@rc || >=5.0",
-        "typo3/cms-core": "^12.4 || ^13.4",
+        "helhum/config-loader": "^0.12.6",
+        "helhum/typo3-console": "^9.0",
+        "symfony/console": "^6.4 || ^7.4 || ^8.0",
+        "symfony/yaml": "^6.4 || ^7.4 || ^8.0",
+        "typo3/cms-composer-installers": "^5.0.2",
+        "typo3/cms-core": "^13.4.40 || ^14.3.12",
         "composer-runtime-api": "^2.2",
-        "symfony/polyfill-php80": "^1.23.1"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^8.5.36",
-        "composer/composer": "^2.2",
-        "php-parallel-lint/php-parallel-lint": "^1.2",
-        "mikey179/vfsstream": "^1.6.10"
+        "symfony/finder": "^6.4 || ^7.4 || ^8.0"
     },
     "conflict": {
-        "typo3-console/composer-auto-commands": "< 0.3.0",
-        "helhum/typo3-console-plugin": "< 2.0.7"
+        "symfony/cache-contracts": "<2.5.3 || >=3.0 <3.5",
+        "symfony/clock": "<6.4.3 || >=7.0 <7.0.3",
+        "symfony/event-dispatcher": "<6.4.3 || >=7.0 <7.0.3",
+        "symfony/event-dispatcher-contracts": "<2.5.3 || >=3.0 <3.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5.58",
+        "composer/composer": "^2.9",
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "mikey179/vfsstream": "^1.6.12"
     },
     "suggest": {
         "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI",
@@ -58,5 +60,10 @@
                 "partOfMinimalUsableSystem": true
             }
         }
+    },
+    "scripts": {
+        "test:unit": "@php vendor/bin/phpunit --testsuite Unit",
+        "lint": "@php vendor/bin/parallel-lint --exclude vendor --exclude public --exclude var .",
+        "test:functional": "@php vendor/bin/phpunit --testsuite Functional"
     }
 }

@@ -1,0 +1,3 @@
+imports:
+    - { resource: 'base.yaml' }
+base: '%env(CONFIG_HANDLING_SITE_BASE)%'
