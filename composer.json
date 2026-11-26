@@ -12,23 +12,18 @@
         "php": ">=8.1",
         "ext-json": "*",
         "helhum/config-loader": ">=0.12.5 <0.13",
-        "helhum/typo3-console": "^8.1.1",
+        "helhum/typo3-console": "^8.1.1 || ^9.0",
         "symfony/console": "^5.4 || ^6.4 || ^7.0",
         "symfony/yaml": "^5.4 || ^6.4 || ^7.0",
-        "typo3/cms-composer-installers": "^4.0@rc || >=5.0",
-        "typo3/cms-core": "^13.4 || ^14.0",
-        "composer-runtime-api": "^2.2",
-        "symfony/polyfill-php80": "^1.23.1"
+        "typo3/cms-composer-installers": ">=5.0",
+        "typo3/cms-core": "^13.4.40 || ^14.3.12",
+        "composer-runtime-api": "^2.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.5.36",
         "composer/composer": "^2.2",
         "php-parallel-lint/php-parallel-lint": "^1.2",
         "mikey179/vfsstream": "^1.6.10"
-    },
-    "conflict": {
-        "typo3-console/composer-auto-commands": "< 0.3.0",
-        "helhum/typo3-console-plugin": "< 2.0.7"
     },
     "suggest": {
         "typo3/cms-install": "If you want to update distribution configuration with Extension Manager or Install Tool UI",

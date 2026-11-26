@@ -11,10 +11,10 @@ use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class Typo3SiteConfiguration extends SiteConfiguration
+readonly class Typo3SiteConfiguration extends SiteConfiguration
 {
-    private string $configFileName = 'config.yaml';
-    private string $cacheIdentifier = 'sites-configuration';
+    private const configFileName = 'config.yaml';
+    private const cacheIdentifier = 'sites-configuration';
 
     /**
      * Load plain configuration
@@ -25,7 +25,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
      */
     public function load(string $siteIdentifier): array
     {
-        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
+        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . self::configFileName;
         $factory = new ConfigurationReaderFactory(Environment::getConfigPath());
         return $factory->createRootReader($fileName)->readConfig();
     }
@@ -37,13 +37,13 @@ class Typo3SiteConfiguration extends SiteConfiguration
      */
     public function write(string $siteIdentifier, array $configuration, bool $protectPlaceholders = false): void
     {
-        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . $this->configFileName;
+        $fileName = $this->configPath . '/' . $siteIdentifier . '/' . self::configFileName;
         if (!file_exists($fileName)) {
             GeneralUtility::mkdir_deep($this->configPath . '/' . $siteIdentifier);
         }
         $yamlFileContents = Yaml::dump($configuration, 99);
         GeneralUtility::writeFile($fileName, $yamlFileContents);
-        $this->cache->remove($this->cacheIdentifier);
+        $this->cache->remove(self::cacheIdentifier);
         $this->cache->remove('pseudo-sites');
     }
 
@@ -54,13 +54,13 @@ class Typo3SiteConfiguration extends SiteConfiguration
      */
     protected function getAllSiteConfigurationFromFiles(bool $useCache = true): array
     {
-        $siteConfiguration = $useCache ? $this->cache->require($this->cacheIdentifier) : false;
+        $siteConfiguration = $useCache ? $this->cache->require(self::cacheIdentifier) : false;
         if ($siteConfiguration !== false && $siteConfiguration !== null) {
             return $siteConfiguration;
         }
         $finder = new Finder();
         try {
-            $finder->files()->depth(0)->name($this->configFileName)->in($this->configPath . '/*');
+            $finder->files()->depth(0)->name(self::configFileName)->in($this->configPath . '/*');
         } catch (\InvalidArgumentException $e) {
             $finder = [];
         }
@@ -81,7 +81,7 @@ class Typo3SiteConfiguration extends SiteConfiguration
             $this->eventDispatcher->dispatch($event);
             $siteConfiguration[$identifier] = $event->getConfiguration();
         }
-        $this->cache->set($this->cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
+        $this->cache->set(self::cacheIdentifier, 'return ' . var_export($siteConfiguration, true) . ';');
 
         return $siteConfiguration;
     }
